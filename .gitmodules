@@ -1,6 +1,0 @@
-[submodule "LrT16.pb"]
-	path = LrT16.pb
-	url = https://github.com/remov-b4-flight/LrT16.pb.git
-[submodule "LrT16.panel"]
-	path = LrT16.panel
-	url = https://github.com/remov-b4-flight/LrT16.panel.git
