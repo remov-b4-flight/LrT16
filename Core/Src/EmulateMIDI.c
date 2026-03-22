@@ -10,7 +10,6 @@
 
 extern	uint8_t	LrScene;
 extern	char *scene_name[SCENE_COUNT];
-extern	PROF_DEFINE	prof_table[SCENE_COUNT][DEFINES_PER_SCENE];
 extern	USBD_HandleTypeDef *pInstance;
 extern	bool isScene_Timeout;
 //! keeps previous 'Note On' note number For sending 'Note Off' message.
@@ -106,7 +105,7 @@ void EmulateMIDI() {
 
 		if ( MTX_Stat.wd != 0) { //Check Matrix switches/encoders
 			//Send 'Note On' message from switches/encoders matrix.
-			uint8_t	note = ((MTX_Stat.wd & MASK_ENCPUSH)? NOTE_OFFSET : 0) + (LrScene * NOTES_PER_SCENE) + bitpos;
+//			uint8_t	note = ((MTX_Stat.wd & MASK_ENCPUSH)? NOTE_OFFSET : 0) + (LrScene * NOTES_PER_SCENE) + bitpos;
 			if (MTX_Stat.wd == RESET_SW_PATTERN) {
 				HAL_NVIC_SystemReset();
 			} else if (bitpos == SCENE_BIT) { //is [SCENE] switch pressed?
@@ -121,7 +120,7 @@ void EmulateMIDI() {
 				LED_SetScene(LrScene);
 				isPrev_Scene = true;
 			} else {
-				LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
+//				LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
 			}
 			isSendMIDIMessage = true;
 
@@ -155,7 +154,7 @@ void EmulateMIDI() {
 		uint8_t	axis = enc_move.bits.axis;
 		uint8_t channel = CC_CH_OFFSET + (LrScene * CC_CH_PER_SCENE) + axis;
 
-		bitpos = PROF_ENC1ST + (axis * 2);
+//		bitpos = PROF_ENC1ST + (axis * 2);
 
 		if (enc_move.bits.move == ENC_MOVE_CW){
 			isSendMIDIMessage = MIDI_CC_Inc(channel);
@@ -192,8 +191,10 @@ rot_stopped_exits:
 	}
 	//Flash LED.
 	if (isLEDflash == true) {
+		/*
 		LED_SetPulse(prof_table[LrScene][bitpos].axis,
 					prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
+		*/
 	}
 
 }

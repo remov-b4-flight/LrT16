@@ -200,7 +200,15 @@ void SysTick_Handler(void)
 void DMA1_Channel4_5_6_7_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_5_6_7_IRQn 0 */
+  if(DMA1->ISR & DMA_ISR_TCIF4){
+	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_1);
 
+	GPIOA->ODR |= GPIO_PIN_6;	//'RESET' state
+	//Set PA6 AF -> GPIO
+	GPIOA->MODER &= ~(GPIO_MODER_MODER6_1);
+	GPIOA->MODER |=	GPIO_MODER_MODER6_0;
+
+  }
   /* USER CODE END DMA1_Channel4_5_6_7_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_tim3_ch1_trig);
   /* USER CODE BEGIN DMA1_Channel4_5_6_7_IRQn 1 */
@@ -214,6 +222,64 @@ void DMA1_Channel4_5_6_7_IRQHandler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
+	uint16_t r;
+
+	// scan keyboard matrix each line
+	switch(ENCSW_Line) {
+		case L0:
+			r = (Mx_GPIO_Port->IDR);
+			current_scan.nb.n0 = (r);
+			ENCSW_Line++;
+			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
+			break;
+		case L1:
+			r = (Mx_GPIO_Port->IDR);
+			current_scan.nb.n1 = (r);
+			ENCSW_Line++;
+			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
+			break;
+/*		case L2:
+			r = (Mx_GPIO_Port->IDR) & LxMASK;
+			current_scan.nb.n2 = (r);
+			ENCSW_Line++;
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L3_GPIO_Port, L3_Pin, GPIO_PIN_SET);
+			break;
+*/
+		case L2:
+			r = (Mx_GPIO_Port->IDR) & LxMASK;
+			current_scan.nb.n3 = (r);
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
+			ENCSW_Line = L0;
+
+			//Switch detection
+			if (previous_mtrx == current_scan.wd){
+				current_push = current_scan.wd;
+				uint16_t dif = current_push ^ previous_push;
+				MTX_Stat.wd = current_push;
+				if (dif != 0){
+					previous_push = current_push;
+					isAnyMatrixPushed = true;
+					scene_timer = 0;
+				}
+			}
+			previous_mtrx = current_scan.wd;
+			break;
+	}
+	if (scene_timer++ > SCENE_TIMEOUT) {
+		scene_timer = 0;
+#ifndef NO_SCENE_TO
+		if (LrScene != Lr_SCENE0) {
+			isScene_Timeout = true;
+			MTX_Stat.wd = (1 << SCENE_BIT);
+			isAnyMatrixPushed = true;
+			LrScene = Lr_SCENE3;
+#endif
+		}
+	}
 
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
@@ -256,14 +322,14 @@ void USB_IRQHandler(void)
  */
 void ENC_Init() {
 	//! Initialize all enc_prev[] for current pin value
-	enc_prev[Lr_ENC4] = current_enc.nb.enc4 = (ENC4_GPIO_Port->IDR) & ENC_MASK;
-	enc_prev[Lr_ENC1] = current_enc.nb.enc1 = (ENC1_GPIO_Port->IDR >> 8) & ENC_MASK;
-	enc_prev[Lr_ENC2] = current_enc.nb.enc2 = (ENC2_GPIO_Port->IDR >> 10) & ENC_MASK;
-	enc_prev[Lr_ENC6] = current_enc.nb.enc6 = (ENC6_GPIO_Port->IDR >> 2) & ENC_MASK;
-	enc_prev[Lr_ENC7] = current_enc.nb.enc7 = (ENC7_GPIO_Port->IDR >> 6) & ENC_MASK;
-	enc_prev[Lr_ENC5] = current_enc.nb.enc5 = ( (ENC5A_GPIO_Port->IDR & ENC5A_MASK) | (ENC5B_GPIO_Port->IDR & ENC5B_MASK) ) >> 12;
-	enc_prev[Lr_ENC0] = current_enc.nb.enc0 = (ENC0_GPIO_Port->IDR >> 4 ) & ENC_MASK;
-	enc_prev[Lr_ENC3] = current_enc.nb.enc3 = (ENC3_GPIO_Port->IDR >> 14 ) & ENC_MASK;
+	enc_prev[Lr_ENC0] = current_enc.nb.enc0 = (ENC0_GPIO_Port->IDR) & ENC_MASK;
+	enc_prev[Lr_ENC1] = current_enc.nb.enc1 = (ENC1_GPIO_Port->IDR >> 2) & ENC_MASK;
+	enc_prev[Lr_ENC2] = current_enc.nb.enc2 = (ENC2_GPIO_Port->IDR >> 4) & ENC_MASK;
+	enc_prev[Lr_ENC3] = current_enc.nb.enc3 = (ENC3_GPIO_Port->IDR >> 6 ) & ENC_MASK;
+	enc_prev[Lr_ENC4] = current_enc.nb.enc4 = (ENC4_GPIO_Port->IDR >> 8) & ENC_MASK;
+	enc_prev[Lr_ENC5] = current_enc.nb.enc5 = ( ENC5_GPIO_Port->IDR >>10) & ENC_MASK;
+	enc_prev[Lr_ENC6] = current_enc.nb.enc6 = (ENC6_GPIO_Port->IDR >> 12) & ENC_MASK;
+	enc_prev[Lr_ENC7] = current_enc.nb.enc7 = (ENC7_GPIO_Port->IDR >> 14) & ENC_MASK;
 
 	previous_move = previous_enc = current_enc.wd;
 	scene_timer = 0;

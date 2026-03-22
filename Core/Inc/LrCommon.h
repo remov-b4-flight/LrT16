@@ -31,11 +31,11 @@ typedef union enc_scan_t {
 
 //! Type for switch matrix
 typedef union mtrx_scan_t {
-    uint16_t wd;
+    uint32_t wd;
     struct ks_bits_t {
-		uint8_t n0:4;	//! < Switch Line0
-		uint8_t n1:4;	//! < Switch Line1
-		uint8_t n2:4;	//! < Switch Line2
+		uint16_t n0;	//! < Switch Line0
+		uint16_t n1;	//! < Switch Line1
+		uint16_t n2;	//! < Switch Line2
 		uint8_t n3:4;	//! < Switch Line3
     } nb;
 } MTX_SCAN;

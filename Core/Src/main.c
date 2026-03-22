@@ -33,7 +33,6 @@
 #include "EmulateMIDI.h"
 #include "stm32f0xx_it.h"
 #include "stm32f0xx_hal_dma.h"
-#include "opr_define.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +47,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-extern	uint8_t	LED_Scene[SCENE_COUNT][LED_COUNT];
+//extern	uint8_t	LED_Scene[SCENE_COUNT][LED_COUNT];
 extern	uint8_t	LEDColor[LED_COUNT];
 extern	uint8_t	LEDTimer[LED_COUNT];
 /* USER CODE END PM */
@@ -147,13 +146,12 @@ inline void Msg_Print() {
  */
 static void Matrix_Control(uint8_t control) {
 	if (control == Lr_MATRIX_START) {
-		MTRX_Init();
+//		MTRX_Init();
 	}
 
 	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, (control == Lr_MATRIX_START)? GPIO_PIN_SET : GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(L3_GPIO_Port, L3_Pin, GPIO_PIN_RESET);
 	ENCSW_Line = L0;
 }
 /* USER CODE END 0 */
@@ -234,7 +232,7 @@ int main(void)
 	Start_MsgTimer(MSG_TIMER_DEFAULT);
 
 	// Check SW1 and SW3 is pushed at Power On
-	if ((GPIOA->IDR & SWMASK) == SWMASK ) {
+	if (0) { // MTD: define key combination
 		LrState = LR_USB_DFU;
 	} else {
 		// MX_USB_DEVICE_Init() must be delayed until here for launch DFU.
@@ -259,7 +257,7 @@ int main(void)
 
 			// Connection banner
 			Start_MsgTimer(MSG_TIMER_CONNECT);
-			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
+//			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
 			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
 			LrState = LR_USB_LINKED;
 
@@ -328,7 +326,7 @@ int main(void)
 		if (LED_Timer_Update == true) { // 24ms interval
 			for (uint8_t i = 0; i < LED_COUNT; i++) {
 				if (LEDTimer[i] != LED_TIMER_CONSTANT && --LEDTimer[i] == 0) {
-					LED_SetPulse(i, LED_Scene[LrScene][i], LED_TIMER_CONSTANT);
+//					LED_SetPulse(i, LED_Scene[LrScene][i], LED_TIMER_CONSTANT);
 				}
 			}
 			LED_Timer_Update = false;

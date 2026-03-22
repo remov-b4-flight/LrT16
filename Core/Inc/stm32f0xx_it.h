@@ -44,26 +44,25 @@ extern "C" {
 /* USER CODE BEGIN EM */
 
  //! @defgroup LrTMAX Ports on Board
-#define Mx_GPIO_Port GPIOA
-#define ENC0_GPIO_Port GPIOA
+#define Mx_GPIO_Port GPIOB
+#define ENC0_GPIO_Port GPIOB
 #define ENC1_GPIO_Port GPIOB
 #define ENC2_GPIO_Port GPIOB
-#define ENC3_GPIO_Port GPIOC
-#define ENC4_GPIO_Port GPIOF
-#define ENC5A_GPIO_Port GPIOB
-#define ENC5B_GPIO_Port GPIOC
+#define ENC3_GPIO_Port GPIOB
+#define ENC4_GPIO_Port GPIOB
+#define ENC5_GPIO_Port GPIOB
 #define ENC6_GPIO_Port GPIOB
 #define ENC7_GPIO_Port GPIOB
 
 //! @defgroup Definitions for Encoders
-#define PRMASK_E0	0x0030
-#define PRMASK_E1	0x0300
-#define PRMASK_E2	0x0C00
-#define PRMASK_E3	0xC000
-#define PRMASK_E4	0x0003
-#define PRMASK_E5	0x3000
-#define PRMASK_E6	0x000C
-#define PRMASK_E7	0x00C0
+#define PRMASK_E0	0x0003
+#define PRMASK_E1	0x000C
+#define PRMASK_E2	0x0030
+#define PRMASK_E3	0x00C0
+#define PRMASK_E4	0x0300
+#define PRMASK_E5	0xC000
+#define PRMASK_E6	0x3000
+#define PRMASK_E7	0xC000
 
  //! Encoder condition
 enum enc_move_t {
@@ -99,6 +98,7 @@ void TIM6_DAC_IRQHandler(void);
 void USB_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 void ENC_Init();
+void MTRX_Init();
 /* USER CODE END EFP */
 
 #ifdef __cplusplus
