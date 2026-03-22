@@ -12,7 +12,6 @@
 #include "midi.h"
 #include "usbd_midi_if.h"
 #include "bitcount.h"
-#include "ssd1306.h"
 #include "led.h"
 
 //! define switch combination to invoke reset

@@ -30,7 +30,6 @@
 #include "led.h"
 #include "bitcount.h"
 #include "usbd_midi_if.h"
-#include "ssd1306.h"
 #include "EmulateMIDI.h"
 #include "stm32f0xx_it.h"
 #include "stm32f0xx_hal_dma.h"
@@ -232,7 +231,6 @@ int main(void)
 	uint32_t	nc_count = 0;
 
 	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
-	HAL_TIM_Base_Start_IT(&htim7);		//Start Message timer.
 	Start_MsgTimer(MSG_TIMER_DEFAULT);
 
 	// Check SW1 and SW3 is pushed at Power On
@@ -254,24 +252,12 @@ int main(void)
 	while (1) {
 		if (LrState == LR_USB_LINKUP) {
 			// USB device configured by host
-			SSD1306_SetScreen(ON);
 
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
 			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
 			Start_All_Encoders();				// Start rotary encoder.
 
 			// Connection banner
-	#ifdef DEBUG
-			sprintf(Msg_Buffer[Lr_OLED_TOP], CONN_MSG_D, Lr_PRODUCT, HIBYTE(USBD_DEVICE_VER), LOBYTE(USBD_DEVICE_VER));
-			memset(Msg_Buffer[Lr_OLED_BOTTOM], (int)SPACE_CHAR, MSG_WIDTH );
-			Msg_Print();
-	#else
-			SSD1306_LoadBitmap();
-			sprintf(Msg_Buffer[Lr_OLED_TOP], CONN_MSG, HIBYTE(USBD_DEVICE_VER), LOBYTE(USBD_DEVICE_VER));
-			SSD1306_RenderBanner(Msg_Buffer[Lr_OLED_TOP], BANNER_VER_X, BANNER_VER_Y);
-			SSD1306_FlashScreen();
-			memset(Msg_Buffer[Lr_OLED_TOP], (int)SPACE_CHAR, MSG_WIDTH );
-	#endif
 			Start_MsgTimer(MSG_TIMER_CONNECT);
 			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
 			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
@@ -298,8 +284,6 @@ int main(void)
 				if (Msg_1st_timeout == true) {
 					LrState = LR_USB_LINK_LOST;
 				} else { // 2nd or more
-					sprintf(Msg_Buffer[Lr_OLED_TOP], "%12ld", nc_count++);
-					SSD1306_SetScreen(ON);
 
 					Msg_Print();
 
@@ -324,8 +308,6 @@ int main(void)
 			if (Msg_Off_Flag == true) {
 				if (nc_count == 0) {
 					// Show DFU banner
-					strcpy(Msg_Buffer[0], DFU_MSG);
-					SSD1306_SetScreen(ON);
 					Msg_Print();
 					nc_count++;
 				} else if(nc_count == 1) {
@@ -359,41 +341,6 @@ int main(void)
 				isLEDsendpulse = false;
 			} else {
 				HAL_Delay(LED_TIM_RETRY_WAIT);	// i2c is busy, retry with interval
-			}
-			continue;
-		}
-
-		// OLED timer
-		if (Msg_Timer_Update == true) {	//32.7ms interval
-			if (Msg_Timer_Enable == true && (--Msg_Timer_Count) <= 0) {
-				Msg_Timer_Enable = false;
-				Msg_Off_Flag = true;
-			}
-			Msg_Timer_Update = false;
-			continue;
-		}
-
-		// OLED off Timer
-		if (Msg_Off_Flag == true) {
-			Msg_Off_Flag = false;
-			SSD1306_SetScreen(OFF);
-			SSD1306_ClearBuffer();
-			memset(Msg_Buffer[Lr_OLED_TOP], (int)SPACE_CHAR, MSG_WIDTH );
-			memset(Msg_Buffer[Lr_OLED_BOTTOM], (int)SPACE_CHAR, MSG_WIDTH );
-			continue;
-		}
-
-		// Flashing OLED display.
-		if (isMsgFlash == true) {
-			if (isRender == true) {
-				SSD1306_Render2Buffer();
-				isRender = false;
-			}
-			if (SSD1306_FlashScreen() == true) {
-				isMsgFlash = false;	// success to flash
-				isRender = true;
-			} else {
-				HAL_Delay(I2C_RETRY_WAIT);	// i2c is busy, retry with interval
 			}
 			continue;
 		}

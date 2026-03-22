@@ -11,7 +11,6 @@
 extern	uint8_t	LrScene;
 extern	char *scene_name[SCENE_COUNT];
 extern	PROF_DEFINE	prof_table[SCENE_COUNT][DEFINES_PER_SCENE];
-extern	char Msg_Buffer[MSG_LINES][MSG_WIDTH+1];
 extern	USBD_HandleTypeDef *pInstance;
 extern	bool isScene_Timeout;
 //! keeps previous 'Note On' note number For sending 'Note Off' message.
@@ -26,8 +25,6 @@ bool	isPrev_Scene;
 uint8_t	MIDI_CC_Value[CC_CH_COUNT];
 //! Queing received MIDI message;
 QUEUE	midi_rx_que;
-//OLED message buffer
-char 	msg_string[MSG_WIDTH+2];
 
 // keyboard variable
 //! If true, ISR detected any Switch was pushed.
@@ -99,10 +96,7 @@ void EmulateMIDI() {
 				MIDI_CC_Value[rx.by.ch] = rx.by.val;
 			}
 		} while  (queue_isempty(&midi_rx_que) != true);
-		SSD1306_SetScreen(ON);
-		sprintf(Msg_Buffer[Lr_OLED_TOP], ((rx.by.ch <= MAX_2DG)? CC_MSG_2DG:CC_MSG_3DG), rx.by.ch, rx.by.val, cc_scene);
 		if (isPrev_Scene == true) {
-			memset(Msg_Buffer[Lr_OLED_BOTTOM], (int)SPACE_CHAR, MSG_WIDTH );
 			isPrev_Scene = false;
 		}
 		Msg_Print();
@@ -125,19 +119,13 @@ void EmulateMIDI() {
 				}
 
 				LED_SetScene(LrScene);
-				sprintf(Msg_Buffer[Lr_OLED_TOP], "Scene %1d",LrScene);
-				strcpy(msg_string, scene_name[LrScene]);
 				isPrev_Scene = true;
 			} else {
 				LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
-				memset(Msg_Buffer[Lr_OLED_TOP], (int)SPACE_CHAR, MSG_WIDTH );
-				sprintf(msg_string, "Note: %3d    S%1d", note, (LrScene % SCENE_COUNT) );
 			}
 			isSendMIDIMessage = true;
 
 			//Print Message to OLED & LED
-			SSD1306_SetScreen(ON);
-			strcpy(Msg_Buffer[Lr_OLED_BOTTOM], msg_string);
 			Msg_Print();
 			Start_MsgTimer(MSG_TIMER_DEFAULT);
 
@@ -187,13 +175,6 @@ void EmulateMIDI() {
 		isPrev_SwPush = false;
 
 		//Print Message to OLED & LEDs.
-		SSD1306_SetScreen(ON);
-		sprintf(msg_string, CC_MSG_2DG, channel, MIDI_CC_Value[channel], LrScene & SCENE_MSK);
-		if (isPrev_Scene == true) {
-			memset(Msg_Buffer[Lr_OLED_TOP], (int)SPACE_CHAR, MSG_WIDTH );
-			isPrev_Scene = false;
-		}
-		strcpy(Msg_Buffer[Lr_OLED_BOTTOM], msg_string);
 		Msg_Print();
 
 		Start_MsgTimer(MSG_TIMER_DEFAULT);
