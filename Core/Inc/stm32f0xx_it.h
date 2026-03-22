@@ -43,6 +43,48 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
+ //! @defgroup LrTMAX Ports on Board
+#define Mx_GPIO_Port GPIOA
+#define ENC0_GPIO_Port GPIOA
+#define ENC1_GPIO_Port GPIOB
+#define ENC2_GPIO_Port GPIOB
+#define ENC3_GPIO_Port GPIOC
+#define ENC4_GPIO_Port GPIOF
+#define ENC5A_GPIO_Port GPIOB
+#define ENC5B_GPIO_Port GPIOC
+#define ENC6_GPIO_Port GPIOB
+#define ENC7_GPIO_Port GPIOB
+
+//! @defgroup Definitions for Encoders
+#define PRMASK_E0	0x0030
+#define PRMASK_E1	0x0300
+#define PRMASK_E2	0x0C00
+#define PRMASK_E3	0xC000
+#define PRMASK_E4	0x0003
+#define PRMASK_E5	0x3000
+#define PRMASK_E6	0x000C
+#define PRMASK_E7	0x00C0
+
+ //! Encoder condition
+enum enc_move_t {
+	ENC_STOPPED = 0,	//! < encoder just stopped.
+	ENC_MOVE_CW,		//! < encoder moved clockwise.
+	ENC_MOVE_CCW,		//! < encoder moved counterclockwise.
+	ENC_INVALID,		//! < invalid signal condition, must be ignored.
+};
+
+//! @defgroup bit mask pattern for individual encoder
+#define ENC_MASK	0x03
+#define ENC5A_MASK	0x1000
+#define ENC5B_MASK	0x2000
+
+//! Definitions for Matrix
+#define LxMASK	0x0F
+//! Duration of omit next MIDI message send.
+#define DECHATTER_MAX 10
+#define DECHATTER_MIN 3
+#define DECHATTER_DEC 2
+#define DECHATTER_THR 4
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -56,7 +98,7 @@ void TIM2_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
 void USB_IRQHandler(void);
 /* USER CODE BEGIN EFP */
-
+void ENC_Init();
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

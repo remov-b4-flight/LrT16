@@ -31,7 +31,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+//! @defgroup Define LrTMAX version.
+#define USBD_DEVICE_VER	0x0074
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -41,12 +42,13 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+//! Build option if you need not use scene timeouts, uncomment this.
+//#define NO_SCENE_TO	1
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+#define SPACE_CHAR  ' '
 /* USER CODE END EM */
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -55,7 +57,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void Start_MsgTimer(uint32_t tick);
+void Msg_Print();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -128,6 +131,9 @@ void Error_Handler(void);
 #define M9_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+
+//! LED TIM3 definitions
+#define LED_TIM_RETRY_WAIT	21		//Transfer period for I2C
 
 /* USER CODE END Private defines */
 

@@ -22,6 +22,12 @@
 #include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdbool.h>
+#include <string.h>
+#include "LrCommon.h"
+#include "midi.h"
+#include "bitcount.h"
+#include "stm32f0xx_hal_tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +58,40 @@
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+//! Current detected bits as push
+uint16_t current_push;
+//! Previous detected bits
+uint16_t previous_push;
+//! Value of scanned from key matrix.
+MTX_SCAN current_scan;
+//! Previous scanned bits
+uint16_t previous_mtrx;
+//! Previous encoder state array
+uint8_t	enc_prev[ENC_COUNT];
+//! CUrrent encoder state array
+uint8_t	enc_current[ENC_COUNT];
+//! Encoder movement definition table
+const uint8_t enc_table[4][4] = {
+//now =	0			1				2				3
+	{ENC_INVALID,	ENC_MOVE_CW,	ENC_MOVE_CCW,	ENC_INVALID,	},//prev = 0
+	{ENC_STOPPED,	ENC_INVALID,	ENC_INVALID,	ENC_STOPPED,	},//prev = 1
+	{ENC_STOPPED,	ENC_INVALID,	ENC_INVALID,	ENC_STOPPED,	},//prev = 2
+	{ENC_INVALID,	ENC_MOVE_CCW,	ENC_MOVE_CW,	ENC_INVALID,	},//prev = 3
+};
+//! Current encoder scan value load by timer interrupt
+ENC_SCAN current_enc;
+//! previous encoder scan value
+uint16_t previous_enc;
+//! Current detected bits as movement
+uint16_t current_move;
+//! Previous detected bits
+uint16_t previous_move;
+//! Scene counter
+uint32_t scene_timer;
+//! De-chatter timer counter
+uint8_t dechatter_timer;
+//! De-chatter timer counter
+uint8_t dechatter_rate;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -60,7 +100,18 @@ extern DMA_HandleTypeDef hdma_tim3_ch1_trig;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim6;
 /* USER CODE BEGIN EV */
-
+extern TIM_HandleTypeDef htim3;
+extern uint8_t	ENCSW_Line;
+extern bool		isAnyMatrixPushed;
+extern bool		isAnyEncoderMoved;
+extern MTX_SCAN	MTX_Stat;
+extern ENC_SCAN	ENC_Stat;
+extern char		*Msg_Buffer[];
+extern bool		LED_Timer_Update;
+extern bool		Msg_Timer_Update;
+extern ENC_MOVE	enc_move;
+extern bool		isScene_Timeout;
+extern uint8_t	LrScene;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -177,7 +228,7 @@ void TIM2_IRQHandler(void)
 void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
-
+  LED_Timer_Update = true;
   /* USER CODE END TIM6_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
@@ -200,5 +251,31 @@ void USB_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+/**
+ * @brief	Load momental encoder values as initialize encoders.
+ */
+void ENC_Init() {
+	//! Initialize all enc_prev[] for current pin value
+	enc_prev[Lr_ENC4] = current_enc.nb.enc4 = (ENC4_GPIO_Port->IDR) & ENC_MASK;
+	enc_prev[Lr_ENC1] = current_enc.nb.enc1 = (ENC1_GPIO_Port->IDR >> 8) & ENC_MASK;
+	enc_prev[Lr_ENC2] = current_enc.nb.enc2 = (ENC2_GPIO_Port->IDR >> 10) & ENC_MASK;
+	enc_prev[Lr_ENC6] = current_enc.nb.enc6 = (ENC6_GPIO_Port->IDR >> 2) & ENC_MASK;
+	enc_prev[Lr_ENC7] = current_enc.nb.enc7 = (ENC7_GPIO_Port->IDR >> 6) & ENC_MASK;
+	enc_prev[Lr_ENC5] = current_enc.nb.enc5 = ( (ENC5A_GPIO_Port->IDR & ENC5A_MASK) | (ENC5B_GPIO_Port->IDR & ENC5B_MASK) ) >> 12;
+	enc_prev[Lr_ENC0] = current_enc.nb.enc0 = (ENC0_GPIO_Port->IDR >> 4 ) & ENC_MASK;
+	enc_prev[Lr_ENC3] = current_enc.nb.enc3 = (ENC3_GPIO_Port->IDR >> 14 ) & ENC_MASK;
 
+	previous_move = previous_enc = current_enc.wd;
+	scene_timer = 0;
+	dechatter_timer = 0;
+	dechatter_rate = DECHATTER_MAX;
+}
+/**
+ * @brief	Initialize Matrix related variables.
+ */
+void MTRX_Init() {
+	previous_mtrx = 0;
+	previous_push = 0;
+	current_push = 0;
+}
 /* USER CODE END 1 */

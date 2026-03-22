@@ -23,10 +23,11 @@
 #include "stm32f0xx_hal.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
-#include "usbd_hid.h"
 
 /* USER CODE BEGIN Includes */
-
+#include <stdbool.h>
+#include "LrCommon.h"
+#include "usbd_midi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,7 +36,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+extern uint8_t	LrState;
 /* USER CODE END PV */
 
 PCD_HandleTypeDef hpcd_USB_FS;
@@ -284,6 +285,9 @@ static void PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
 void HAL_PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
+/* USER CODE BEGIN DisconnectCallback LrTMAX*/
+	LrState = LR_USB_LINK_LOST;
+/* USER CODE END DisconnectCallback LrTMAX*/
   USBD_LL_DevDisconnected((USBD_HandleTypeDef*)hpcd->pData);
 }
 
@@ -331,12 +335,13 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   HAL_PCD_RegisterIsoInIncpltCallback(&hpcd_USB_FS, PCD_ISOINIncompleteCallback);
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
   /* USER CODE BEGIN EndPoint_Configuration */
-  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x00 , PCD_SNG_BUF, 0x18);
-  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x80 , PCD_SNG_BUF, 0x58);
+  // EP0 definitions
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, EP0_OUT, PCD_SNG_BUF, EP0_OUT_PMA);
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, EP0_IN, PCD_SNG_BUF, EP0_IN_PMA);
+  // USB MIDI definitions
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, MIDI_IN_EP,	PCD_SNG_BUF, MIDI_IN_PMA);
+  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData, MIDI_OUT_EP, PCD_SNG_BUF, MIDI_OUT_PMA);
   /* USER CODE END EndPoint_Configuration */
-  /* USER CODE BEGIN EndPoint_Configuration_HID */
-  HAL_PCDEx_PMAConfig((PCD_HandleTypeDef*)pdev->pData , 0x81 , PCD_SNG_BUF, 0x100);
-  /* USER CODE END EndPoint_Configuration_HID */
   return USBD_OK;
 }
 
@@ -589,8 +594,14 @@ void USBD_LL_Delay(uint32_t Delay)
   */
 void *USBD_static_malloc(uint32_t size)
 {
+  /* USER CODE BEGIN USBD_static_malloc LrTMAX*/
+#if 0
   static uint32_t mem[(sizeof(USBD_HID_HandleTypeDef)/4)+1];/* On 32-bit boundary */
   return mem;
+#else
+  return NULL;
+#endif
+  /* USER CODE END USBD_static_malloc LrTMAX*/
 }
 
 /**

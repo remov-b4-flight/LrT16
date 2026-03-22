@@ -24,7 +24,7 @@
 #include "usbd_conf.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include "main.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,7 +71,14 @@
 #define USBD_INTERFACE_STRING_FS     "MIDI Interface"
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
-
+#undef	USBD_VID
+#undef	USBD_MANUFACTURER_STRING
+#undef	USBD_PRODUCT_STRING_FS
+#define USBD_VID					0x1209
+#define USBD_MANUFACTURER_STRING	Lr_VENDOR
+#define USBD_PRODUCT_STRING_FS		Lr_PRODUCT
+/*bDeviceClass = (specified in interface desc.) */
+/*bDeviceSubClass = (specified in interface desc.) */
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -158,8 +165,10 @@ __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
   HIBYTE(USBD_VID),           /*idVendor*/
   LOBYTE(USBD_PID_FS),        /*idProduct*/
   HIBYTE(USBD_PID_FS),        /*idProduct*/
-  0x00,                       /*bcdDevice rel. 2.00*/
-  0x02,
+/* USER CODE BEGIN Descriptor. LrTMAX*/
+  LOBYTE(USBD_DEVICE_VER),    /*bcdDevice minor*/
+  HIBYTE(USBD_DEVICE_VER),    /*bcdDevice major*/
+/* USER CODE END Descriptor. LrTMAX*/
   USBD_IDX_MFC_STR,           /*Index of manufacturer  string*/
   USBD_IDX_PRODUCT_STR,       /*Index of product string*/
   USBD_IDX_SERIAL_STR,        /*Index of serial number string*/

@@ -1,8 +1,10 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
+  * @file		main.c
+  * @brief		Main program body
+  * @author		remov-b4-flight
+  * @copyright	3-Clause BSD License
   ******************************************************************************
   * @attention
   *
@@ -22,7 +24,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdbool.h>
+#include "LrCommon.h"
+#include "midi.h"
+#include "led.h"
+#include "bitcount.h"
+#include "usbd_midi_if.h"
+#include "ssd1306.h"
+#include "EmulateMIDI.h"
+#include "stm32f0xx_it.h"
+#include "stm32f0xx_hal_dma.h"
+#include "opr_define.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +49,9 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+extern	uint8_t	LED_Scene[SCENE_COUNT][LED_COUNT];
+extern	uint8_t	LEDColor[LED_COUNT];
+extern	uint8_t	LEDTimer[LED_COUNT];
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -50,6 +64,36 @@ DMA_HandleTypeDef hdma_tim3_ch1_trig;
 
 /* USER CODE BEGIN PV */
 
+//! STM32 TIM3 instance handle
+TIM_HandleTypeDef htim3;
+//! LrTMAX USB connection state
+uint8_t	LrState;
+//! LrTMAX Scene index
+uint8_t	LrScene;
+//! In key scanning whether Line selected to read for key matrix.
+uint8_t	ENCSW_Line;
+// OLED variables
+//! Flag set by timer ISR, It makes 'off' OLES contents.
+bool 	Msg_Timer_Update;
+//! Timer counter ticked by TIM7.
+int32_t	Msg_Timer_Count;
+//! If true Msg_Timer counting is enabled.
+bool	Msg_Timer_Enable;
+//! If true, Screen is cleared in main() that is determined on timer interrupt.
+bool	Msg_Off_Flag;
+//! If true, Screen is flashed by [] at main() function.
+static	bool	isMsgFlash;
+//! If true, frame_buffer[] contents flashes the screen.
+static	bool	isRender;
+
+//! LED variables
+//! If true, LEDs are flashed by LEDColor[] array.
+bool	isLEDsendpulse;
+//! Flag is set by timer ISR, It makes LED_Timer[] count up in main()
+bool	LED_Timer_Update;
+
+//! Scene time out
+bool	isScene_Timeout;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,12 +106,57 @@ static void MX_TIM14_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-
+void Jump2SystemMemory();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/**
+ *	@brief	Stop encoder scan
+ */
+static inline void Stop_All_Encoders() {
+	HAL_TIM_Base_Stop_IT(&htim2);
+}
+
+/**
+ * @brief	Start encoder scan by timer
+ */
+static inline void Start_All_Encoders() {
+	ENC_Init();
+	HAL_TIM_Base_Start_IT(&htim2);
+}
+
+/**
+ * @brief Start OLED off timer
+*/
+void Start_MsgTimer(uint32_t tick){
+	Msg_Off_Flag = false;
+	Msg_Timer_Count = tick;
+	Msg_Timer_Enable = true;
+}
+/**
+ * @brief	raise flag to message flash
+ */
+inline void Msg_Print() {
+	isMsgFlash = true;
+}
+
+/**
+ * @brief start/stop matrix L0-L3 control
+ * @param control Lr_MATRIX_START / Lr_MATRIX_STOP
+ */
+static void Matrix_Control(uint8_t control) {
+	if (control == Lr_MATRIX_START) {
+		MTRX_Init();
+	}
+
+	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, (control == Lr_MATRIX_START)? GPIO_PIN_SET : GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(L3_GPIO_Port, L3_Pin, GPIO_PIN_RESET);
+	ENCSW_Line = L0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -78,7 +167,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	//! Indicates 1st Msg_Timer timeout has occurred from power on reset.
+	bool Msg_1st_timeout = true;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -87,7 +177,19 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+	Msg_Off_Flag = false;
+	Msg_Timer_Enable = false;
+	Msg_Timer_Count = MSG_TIMER_DEFAULT;
+	isMsgFlash = false;
+	isRender = true;
 
+	LrState = LR_RESET;
+	LrScene = Lr_SCENE0;
+
+	isLEDsendpulse = false;
+	Msg_Timer_Update = false;
+	LED_Timer_Update = false;
+	isScene_Timeout = false;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -103,17 +205,201 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM1_Init();
   MX_TIM14_Init();
-  MX_USB_DEVICE_Init();
+/* USER CODE BEGIN MX_USB_Devive_Init LrTMAX*/
+//  MX_USB_DEVICE_Init(); must be delayed.
+/* USER CODE END MX_USB_Devive_Init LrTMAX*/
   MX_TIM6_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+	// Set all LEDs to 'OFF'
+	LED_Initialize();
+	// Stop All Encoders until USB link up
+	Stop_All_Encoders();
+	//Initialize Switch matrix
+	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);	// Initialize L0-3.
+
+	// Initialize series of WS2812C
+	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR6_0;	// Pull up PA6 (WS2812C-2020 workaround)
+	GPIOA->ODR |= GPIO_PIN_6;				//'RESET' state
+	//AF -> GPIO
+	GPIOA->MODER &= ~(GPIO_MODER_MODER6_1);
+	GPIOA->MODER |=	GPIO_MODER_MODER6_0;
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	uint32_t	nc_count = 0;
+
+	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
+	HAL_TIM_Base_Start_IT(&htim7);		//Start Message timer.
+	Start_MsgTimer(MSG_TIMER_DEFAULT);
+
+	// Check SW1 and SW3 is pushed at Power On
+	if ((GPIOA->IDR & SWMASK) == SWMASK ) {
+		LrState = LR_USB_DFU;
+	} else {
+		// MX_USB_DEVICE_Init() must be delayed until here for launch DFU.
+		MX_USB_DEVICE_Init();
+		LrState = LR_USB_NOLINK;
+	}
+
+	// Initialize CC Value table
+	EmulateMIDI_Init();
+
+	// LED Initialize
+	LED_SetScene(LrScene);
+
+	// Main loop
+	while (1) {
+		if (LrState == LR_USB_LINKUP) {
+			// USB device configured by host
+			SSD1306_SetScreen(ON);
+
+			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
+			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
+			Start_All_Encoders();				// Start rotary encoder.
+
+			// Connection banner
+	#ifdef DEBUG
+			sprintf(Msg_Buffer[Lr_OLED_TOP], CONN_MSG_D, Lr_PRODUCT, HIBYTE(USBD_DEVICE_VER), LOBYTE(USBD_DEVICE_VER));
+			memset(Msg_Buffer[Lr_OLED_BOTTOM], (int)SPACE_CHAR, MSG_WIDTH );
+			Msg_Print();
+	#else
+			SSD1306_LoadBitmap();
+			sprintf(Msg_Buffer[Lr_OLED_TOP], CONN_MSG, HIBYTE(USBD_DEVICE_VER), LOBYTE(USBD_DEVICE_VER));
+			SSD1306_RenderBanner(Msg_Buffer[Lr_OLED_TOP], BANNER_VER_X, BANNER_VER_Y);
+			SSD1306_FlashScreen();
+			memset(Msg_Buffer[Lr_OLED_TOP], (int)SPACE_CHAR, MSG_WIDTH );
+	#endif
+			Start_MsgTimer(MSG_TIMER_CONNECT);
+			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
+			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
+			LrState = LR_USB_LINKED;
+
+		} else if (LrState == LR_USB_LINKED) {
+			// Operate as MIDI Instruments.
+			EmulateMIDI();
+		} else if (LrState == LR_USB_LINK_LOST) {
+			Stop_All_Encoders();
+
+			HAL_TIM_Base_Stop(&htim1);
+			Matrix_Control(Lr_MATRIX_STOP);		// Stop L0-L3
+
+			LED_TestPattern();
+			Msg_1st_timeout = false;
+			Start_MsgTimer(MSG_TIMER_DEFAULT);
+			nc_count = 0;
+			LrState = LR_USB_NOLINK;
+
+		} else if (LrState == LR_USB_NOLINK) {
+			// USB can't be configured or disconnected by host.
+			if (Msg_Off_Flag == true) {
+				if (Msg_1st_timeout == true) {
+					LrState = LR_USB_LINK_LOST;
+				} else { // 2nd or more
+					sprintf(Msg_Buffer[Lr_OLED_TOP], "%12ld", nc_count++);
+					SSD1306_SetScreen(ON);
+
+					Msg_Print();
+
+					// Restart OLED timer.
+					Start_MsgTimer(MSG_TIMER_NOLINK);
+
+					// Rotate LED colors
+					uint8_t	tempcolor = LEDColor[7];
+					LEDColor[7] = LEDColor[6];
+					LEDColor[6] = LEDColor[5];
+					LEDColor[5] = LEDColor[4];
+					LEDColor[4] = LEDColor[3];
+					LEDColor[3] = LEDColor[2];
+					LEDColor[2] = LEDColor[1];
+					LEDColor[1] = LEDColor[0];
+					LEDColor[0] = tempcolor;
+
+					isLEDsendpulse = true;
+				}
+			}// Msg_Off_Flag
+		} else if (LrState == LR_USB_DFU) {
+			if (Msg_Off_Flag == true) {
+				if (nc_count == 0) {
+					// Show DFU banner
+					strcpy(Msg_Buffer[0], DFU_MSG);
+					SSD1306_SetScreen(ON);
+					Msg_Print();
+					nc_count++;
+				} else if(nc_count == 1) {
+					// Show LED pattern
+					LED_TestPattern();
+					nc_count++;
+				} else if (nc_count <= 2) {
+					LED_Initialize();
+					// Jump to BOOTLOADER
+					Jump2SystemMemory();
+				}
+				Start_MsgTimer(MSG_TIMER_NOLINK/2);
+			}
+
+		}// LrState
+
+		// LED Timer
+		if (LED_Timer_Update == true) { // 24ms interval
+			for (uint8_t i = 0; i < LED_COUNT; i++) {
+				if (LEDTimer[i] != LED_TIMER_CONSTANT && --LEDTimer[i] == 0) {
+					LED_SetPulse(i, LED_Scene[LrScene][i], LED_TIMER_CONSTANT);
+				}
+			}
+			LED_Timer_Update = false;
+			continue;
+		}
+
+		// Flashing LEDs
+		if (isLEDsendpulse == true) {
+			if (LED_SendPulse() == true) {
+				isLEDsendpulse = false;
+			} else {
+				HAL_Delay(LED_TIM_RETRY_WAIT);	// i2c is busy, retry with interval
+			}
+			continue;
+		}
+
+		// OLED timer
+		if (Msg_Timer_Update == true) {	//32.7ms interval
+			if (Msg_Timer_Enable == true && (--Msg_Timer_Count) <= 0) {
+				Msg_Timer_Enable = false;
+				Msg_Off_Flag = true;
+			}
+			Msg_Timer_Update = false;
+			continue;
+		}
+
+		// OLED off Timer
+		if (Msg_Off_Flag == true) {
+			Msg_Off_Flag = false;
+			SSD1306_SetScreen(OFF);
+			SSD1306_ClearBuffer();
+			memset(Msg_Buffer[Lr_OLED_TOP], (int)SPACE_CHAR, MSG_WIDTH );
+			memset(Msg_Buffer[Lr_OLED_BOTTOM], (int)SPACE_CHAR, MSG_WIDTH );
+			continue;
+		}
+
+		// Flashing OLED display.
+		if (isMsgFlash == true) {
+			if (isRender == true) {
+				SSD1306_Render2Buffer();
+				isRender = false;
+			}
+			if (SSD1306_FlashScreen() == true) {
+				isMsgFlash = false;	// success to flash
+				isRender = true;
+			} else {
+				HAL_Delay(I2C_RETRY_WAIT);	// i2c is busy, retry with interval
+			}
+			continue;
+		}
+
+		HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -406,7 +692,7 @@ static void MX_TIM14_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM14_Init 2 */
-
+  htim14.Instance->CR1 |= TIM_CR1_OPM;
   /* USER CODE END TIM14_Init 2 */
 
 }

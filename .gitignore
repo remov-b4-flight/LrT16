@@ -1,0 +1,39 @@
+# Prerequisites
+*.d
+# Object files
+*.o
+# Debug files
+*.su
+
+# Linker output
+*.list
+*.map
+*.bin
+
+#Others
+/Debug/
+/Release/
+/.code_review_properties
+*.bak
+*.zip
+
+#STM32Cube
+*.launch
+.mxproject
+/.settings/
+
+#un-needed HID class
+/Middlewares/ST/STM32_USB_Device_Library/Class/HID/
+
+#macOS related
+.DS_Store
+._*
+
+#STM32 VSCode Extention
+/build/
+/.vs/
+/.vscode/
+/cmake/
+CMakeLists.txt
+CMakePresets.json
+vcpkg-configuration.json

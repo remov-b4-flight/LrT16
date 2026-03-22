@@ -1,0 +1,6 @@
+*.xls -text
+*.pdf -text
+*.png -text
+*.jpg -text
+*.bin binary
+*.elf binary
