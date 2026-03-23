@@ -101,12 +101,13 @@ void EmulateMIDI() {
 		Msg_Print();
 		Start_MsgTimer(MSG_TIMER_DEFAULT);
 	} else if (isAnyMatrixPushed == true) {
-		bitpos = ntz16(MTX_Stat.wd);
+		bitpos = ntz32(MTX_Stat.mix.n01);
+		bitpos = ntz16(MTX_Stat.mix.n2);
 
-		if ( MTX_Stat.wd != 0) { //Check Matrix switches/encoders
+		if ( MTX_Stat.ll != 0) { //Check Matrix switches/encoders
 			//Send 'Note On' message from switches/encoders matrix.
-//			uint8_t	note = ((MTX_Stat.wd & MASK_ENCPUSH)? NOTE_OFFSET : 0) + (LrScene * NOTES_PER_SCENE) + bitpos;
-			if (MTX_Stat.wd == RESET_SW_PATTERN) {
+			uint8_t	note ;//= ((MTX_Stat.wd & MASK_ENCPUSH)? NOTE_OFFSET : 0) + (LrScene * NOTES_PER_SCENE) + bitpos;
+			if (MTX_Stat.mix.b == RESET_SW_PATTERN) {
 				HAL_NVIC_SystemReset();
 			} else if (bitpos == SCENE_BIT) { //is [SCENE] switch pressed?
 			   	//Move to next Scene.

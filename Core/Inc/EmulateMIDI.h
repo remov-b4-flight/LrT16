@@ -14,11 +14,7 @@
 #include "led.h"
 
 //! define switch combination to invoke reset
-#define RESET_SW_PATTERN	0x81	//[Undo]+[Scene]
-//! @defgroup CC message display format on OLED.
-#define CC_MSG_2DG	"Ch%2u = %3u    S%1u"
-#define CC_MSG_3DG	"C%3u = %3u    S%1u"
-#define MAX_2DG		99
+#define RESET_SW_PATTERN	0x3	// in cc_bits.mix.b [Undo]+[Scene]
 #define	SCENE_MSK	0x3
 
 //! @defgroup number of cc channels that LrTMAX controls.

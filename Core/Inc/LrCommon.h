@@ -11,12 +11,12 @@
 
 //! @defgroup LrTMAX Hardware definition
 #define SW_COUNT		8
-#define ENC_COUNT		8
+#define ENC_COUNT		16
 #define ENC_SW_COUNT	(SW_COUNT + ENC_COUNT)
 
 //! Type for Encoders
 typedef union enc_scan_t {
-    uint16_t wd;
+    uint32_t wd;
     struct enc_bits_t {
 		uint8_t enc0:2;	//! < Rotary encoder0
 		uint8_t enc1:2;	//! < Rotary encoder1
@@ -26,18 +26,34 @@ typedef union enc_scan_t {
 		uint8_t enc5:2;	//! < Rotary encoder5
 		uint8_t enc6:2;	//! < Rotary encoder6
 		uint8_t enc7:2;	//! < Rotary encoder7
+		uint8_t enc8:2;	//! < Rotary encoder8
+		uint8_t enc9:2;	//! < Rotary encoder9
+		uint8_t enc10:2;	//! < Rotary encoder10
+		uint8_t enc11:2;	//! < Rotary encoder11
+		uint8_t enc12:2;	//! < Rotary encoder12
+		uint8_t enc13:2;	//! < Rotary encoder13
+		uint8_t enc14:2;	//! < Rotary encoder14
+		uint8_t enc15:2;	//! < Rotary encoder15
     } nb;
 } ENC_SCAN;
 
 //! Type for switch matrix
 typedef union mtrx_scan_t {
-    uint32_t wd;
+    uint64_t ll;
     struct ks_bits_t {
 		uint16_t n0;	//! < Switch Line0
 		uint16_t n1;	//! < Switch Line1
 		uint16_t n2;	//! < Switch Line2
-		uint8_t n3:4;	//! < Switch Line3
-    } nb;
+		uint16_t b0:1;	//! < un-matrixed switch undo
+		uint16_t b1:1;	//! < un-matrixed switch scene
+		uint16_t dummy:14;
+    } sh;
+    struct cc_bits_t {
+    	uint32_t n01;
+    	uint16_t n2;
+		uint16_t b:2;	//! < un-matrixed switch undo
+		uint16_t dummy:14;
+    } mix;
 } MTX_SCAN;
 
 //! Encoder movement expression
@@ -45,8 +61,8 @@ typedef union enc_m_t {
 	uint8_t	wd;
 	struct enc_mm_t {
 		uint8_t	move:2;	//! < ENC_MOVE_CW/ENC_MOVE_CCW
-		uint8_t axis:3;	//! < axis
-		uint8_t	dummy:3;
+		uint8_t axis:4;	//! < axis
+		uint8_t	dummy:2;
 	} bits;
 } ENC_MOVE;
 
@@ -65,7 +81,6 @@ enum {
 	L0 = 0,
 	L1,
 	L2,
-	L3
 };
 
 //! Encoder definitions
@@ -78,6 +93,14 @@ enum lr_enc_t {
 	Lr_ENC5,
 	Lr_ENC6,
 	Lr_ENC7,
+	Lr_ENC8,
+	Lr_ENC9,
+	Lr_ENC10,
+	Lr_ENC11,
+	Lr_ENC12,
+	Lr_ENC13,
+	Lr_ENC14,
+	Lr_ENC15,
 };
 
 //! Scene definition in MIDI
@@ -92,19 +115,14 @@ enum lr_matrix_t {
 	Lr_MATRIX_STOP = 0,
 	Lr_MATRIX_START = 1,
 };
-//! OLED Lines
-enum lr_oled_t {
-	Lr_OLED_TOP = 0,
-	Lr_OLED_BOTTOM = 1,
-};
 //! number of scene
 #define SCENE_COUNT		4
 //! prof. define structure (in key_define.c)
 #define DEFINES_PER_SCENE	( ENC_SW_COUNT + (ENC_COUNT * 2) )
 //! Assigned notes per scene.
-#define NOTES_PER_SCENE	8
+#define NOTES_PER_SCENE	16
 //! Define key that designated for scene change.
-#define SCENE_BIT		7
+#define SCENE_BIT		49
 //! Scene timeout (1 hour)
 #ifdef DEBUG
 #define SCENE_TIMEOUT (90*1000*1000 / (TIM_PERIOD_MATRIX + 1))
@@ -112,10 +130,10 @@ enum lr_oled_t {
 #define SCENE_TIMEOUT (1200*1000*1000 / (TIM_PERIOD_MATRIX + 1))
 #endif
 //!CC channel offset for Scene0-ENC0
-#define CC_CH_OFFSET	40
-#define NOTE_OFFSET	(CC_CH_OFFSET - 8)
+#define CC_CH_OFFSET	0
+#define NOTE_OFFSET		0 //(CC_CH_OFFSET - 8)
 //!Assigned CC channel count per scene
-#define CC_CH_PER_SCENE	8
+#define CC_CH_PER_SCENE	16
 #define CH_SCENE_MASK	(CC_CH_PER_SCENE - 1)
 
 //! @defgroup LED timer definitions

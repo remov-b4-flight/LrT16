@@ -228,14 +228,14 @@ void TIM2_IRQHandler(void)
 	switch(ENCSW_Line) {
 		case L0:
 			r = (Mx_GPIO_Port->IDR);
-			current_scan.nb.n0 = (r);
+			current_scan.sh.n0 = (r);
 			ENCSW_Line++;
 			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
 			break;
 		case L1:
 			r = (Mx_GPIO_Port->IDR);
-			current_scan.nb.n1 = (r);
+			current_scan.sh.n1 = (r);
 			ENCSW_Line++;
 			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
@@ -250,23 +250,23 @@ void TIM2_IRQHandler(void)
 */
 		case L2:
 			r = (Mx_GPIO_Port->IDR) & LxMASK;
-			current_scan.nb.n3 = (r);
+			current_scan.sh.n2 = (r);
 			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
 			ENCSW_Line = L0;
 
 			//Switch detection
-			if (previous_mtrx == current_scan.wd){
-				current_push = current_scan.wd;
+			if (previous_mtrx == current_scan.ll){
+				current_push = current_scan.ll;
 				uint16_t dif = current_push ^ previous_push;
-				MTX_Stat.wd = current_push;
+				MTX_Stat.ll = current_push;
 				if (dif != 0){
 					previous_push = current_push;
 					isAnyMatrixPushed = true;
 					scene_timer = 0;
 				}
 			}
-			previous_mtrx = current_scan.wd;
+			previous_mtrx = current_scan.ll;
 			break;
 	}
 	if (scene_timer++ > SCENE_TIMEOUT) {
@@ -274,7 +274,7 @@ void TIM2_IRQHandler(void)
 #ifndef NO_SCENE_TO
 		if (LrScene != Lr_SCENE0) {
 			isScene_Timeout = true;
-			MTX_Stat.wd = (1 << SCENE_BIT);
+			MTX_Stat.ll = (1 << SCENE_BIT);
 			isAnyMatrixPushed = true;
 			LrScene = Lr_SCENE3;
 #endif
