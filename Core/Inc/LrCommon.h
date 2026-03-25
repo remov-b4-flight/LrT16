@@ -16,7 +16,7 @@
 
 //! Type for Encoders
 typedef union enc_scan_t {
-    uint32_t wd;
+    uint32_t lo;
     struct enc_bits_t {
 		uint8_t enc0:2;	//! < Rotary encoder0
 		uint8_t enc1:2;	//! < Rotary encoder1
@@ -48,12 +48,17 @@ typedef union mtrx_scan_t {
 		uint16_t b1:1;	//! < un-matrixed switch scene
 		uint16_t dummy:14;
     } sh;
-    struct cc_bits_t {
+    struct cc_bits16_t {
     	uint32_t n01;
     	uint16_t n2;
 		uint16_t b:2;	//! < un-matrixed switch undo
 		uint16_t dummy:14;
     } mix;
+    struct cc_bits32_t {
+    	uint32_t n01;
+    	uint32_t n2b:18; // combinated n2*b
+		uint16_t dummy:14;
+    } m2;
 } MTX_SCAN;
 
 //! Encoder movement expression

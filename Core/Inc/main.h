@@ -48,7 +48,7 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define SPACE_CHAR  ' '
+
 /* USER CODE END EM */
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -134,7 +134,8 @@ void Msg_Print();
 
 //! LED TIM3 definitions
 #define LED_TIM_RETRY_WAIT	21		//Transfer period for I2C
-
+//! ON boot check bit patter for enter DFU
+#define BOOT_DFU_MASK	0x402
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

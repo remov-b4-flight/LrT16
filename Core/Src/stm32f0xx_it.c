@@ -102,8 +102,7 @@ extern TIM_HandleTypeDef htim6;
 /* USER CODE BEGIN EV */
 extern TIM_HandleTypeDef htim3;
 extern uint8_t	ENCSW_Line;
-extern bool		isAnyMatrixPushed;
-extern bool		isAnyEncoderMoved;
+extern bool		isAnyTouched;
 extern MTX_SCAN	MTX_Stat;
 extern ENC_SCAN	ENC_Stat;
 extern char		*Msg_Buffer[];
@@ -226,56 +225,52 @@ void TIM2_IRQHandler(void)
 
 	// scan keyboard matrix each line
 	switch(ENCSW_Line) {
-		case L0:
+		case L0: // ENC0~7
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.sh.n0 = (r);
 			ENCSW_Line++;
 			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
 			break;
-		case L1:
+		case L1: // ENC 8-15
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.sh.n1 = (r);
 			ENCSW_Line++;
 			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
 			break;
-/*		case L2:
-			r = (Mx_GPIO_Port->IDR) & LxMASK;
-			current_scan.nb.n2 = (r);
-			ENCSW_Line++;
-			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(L3_GPIO_Port, L3_Pin, GPIO_PIN_SET);
-			break;
-*/
-		case L2:
-			r = (Mx_GPIO_Port->IDR) & LxMASK;
+		case L2: /* ENC push SW 0-15*/
+			r = (Mx_GPIO_Port->IDR);
 			current_scan.sh.n2 = (r);
 			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
 			ENCSW_Line = L0;
+			r = (SSW_GPIO_Port->IDR);
+			current_scan.sh.b0 = (r & UNDO_SSW_MASK)? 1:0;
+			current_scan.sh.b1 = (r & SCENE_SSW_MASK)? 1:0;
 
 			//Switch detection
-			if (previous_mtrx == current_scan.ll){
+			if (previous_mtrx.ll == current_scan.ll){
 				current_push = current_scan.ll;
-				uint16_t dif = current_push ^ previous_push;
+				uint32_t dif = current_push.ll ^ previous_push.ll;
 				MTX_Stat.ll = current_push;
 				if (dif != 0){
 					previous_push = current_push;
-					isAnyMatrixPushed = true;
+					isAnyTouched = true;
 					scene_timer = 0;
 				}
 			}
-			previous_mtrx = current_scan.ll;
+			previous_mtrx = current_scan.wd;
 			break;
 	}
 	if (scene_timer++ > SCENE_TIMEOUT) {
 		scene_timer = 0;
 #ifndef NO_SCENE_TO
+		// do scene switching to Lr_SCENE0 as scene switch is pushed
 		if (LrScene != Lr_SCENE0) {
 			isScene_Timeout = true;
-			MTX_Stat.ll = (1 << SCENE_BIT);
-			isAnyMatrixPushed = true;
+			MTX_Stat.sh.b1 = 1;
+			isAnySwitchPushed = true;
 			LrScene = Lr_SCENE3;
 #endif
 		}
@@ -322,16 +317,25 @@ void USB_IRQHandler(void)
  */
 void ENC_Init() {
 	//! Initialize all enc_prev[] for current pin value
-	enc_prev[Lr_ENC0] = current_enc.nb.enc0 = (ENC0_GPIO_Port->IDR) & ENC_MASK;
-	enc_prev[Lr_ENC1] = current_enc.nb.enc1 = (ENC1_GPIO_Port->IDR >> 2) & ENC_MASK;
-	enc_prev[Lr_ENC2] = current_enc.nb.enc2 = (ENC2_GPIO_Port->IDR >> 4) & ENC_MASK;
-	enc_prev[Lr_ENC3] = current_enc.nb.enc3 = (ENC3_GPIO_Port->IDR >> 6 ) & ENC_MASK;
-	enc_prev[Lr_ENC4] = current_enc.nb.enc4 = (ENC4_GPIO_Port->IDR >> 8) & ENC_MASK;
-	enc_prev[Lr_ENC5] = current_enc.nb.enc5 = ( ENC5_GPIO_Port->IDR >>10) & ENC_MASK;
-	enc_prev[Lr_ENC6] = current_enc.nb.enc6 = (ENC6_GPIO_Port->IDR >> 12) & ENC_MASK;
-	enc_prev[Lr_ENC7] = current_enc.nb.enc7 = (ENC7_GPIO_Port->IDR >> 14) & ENC_MASK;
+	uint16_t v = (Mx_GPIO_Port->IDR);
+	enc_prev[Lr_ENC0] = current_enc.nb.enc0 = v;
+	enc_prev[Lr_ENC1] = current_enc.nb.enc1 = v;
+	enc_prev[Lr_ENC2] = current_enc.nb.enc2 = v;
+	enc_prev[Lr_ENC3] = current_enc.nb.enc3 = v;
+	enc_prev[Lr_ENC4] = current_enc.nb.enc4 = v;
+	enc_prev[Lr_ENC5] = current_enc.nb.enc5 = v;
+	enc_prev[Lr_ENC6] = current_enc.nb.enc6 = v;
+	enc_prev[Lr_ENC7] = current_enc.nb.enc7 = v;
+	enc_prev[Lr_ENC8] = current_enc.nb.enc8 = v;
+	enc_prev[Lr_ENC9] = current_enc.nb.enc9 = v;
+	enc_prev[Lr_ENC10] = current_enc.nb.enc10 = v;
+	enc_prev[Lr_ENC11] = current_enc.nb.enc11 = v;
+	enc_prev[Lr_ENC12] = current_enc.nb.enc12 = v;
+	enc_prev[Lr_ENC13] = current_enc.nb.enc13 = v;
+	enc_prev[Lr_ENC14] = current_enc.nb.enc14 = v;
+	enc_prev[Lr_ENC15] = current_enc.nb.enc15 = v;
 
-	previous_move = previous_enc = current_enc.wd;
+	previous_move = previous_enc = current_enc.lo;
 	scene_timer = 0;
 	dechatter_timer = 0;
 	dechatter_rate = DECHATTER_MAX;

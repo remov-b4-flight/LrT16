@@ -31,6 +31,11 @@ typedef union ch_val_t {
 	} by;
 }CH_VAL;
 
+//! Bit mask pattern for Encoder push
+#define MASK_ENCPUSH	0xff00
+//! Bit position for 1st encoder
+#define PROF_ENC1ST	16
+
 void EmulateMIDI();
 void EmulateMIDI_Init();
 

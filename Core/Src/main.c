@@ -47,7 +47,6 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-//extern	uint8_t	LED_Scene[SCENE_COUNT][LED_COUNT];
 extern	uint8_t	LEDColor[LED_COUNT];
 extern	uint8_t	LEDTimer[LED_COUNT];
 /* USER CODE END PM */
@@ -92,6 +91,15 @@ bool	LED_Timer_Update;
 
 //! Scene time out
 bool	isScene_Timeout;
+//! LED patterns that set by switching scenes.
+const uint8_t LED_Scene[SCENE_COUNT][LED_COUNT] = {
+	//0			1			2			3			4			5			6			7
+	{LED_BLUE,	LED_BLUE,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene0
+	{LED_RED,	LED_BLUE,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene1
+	{LED_BLUE,	LED_RED,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene2
+	{LED_RED,	LED_RED,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF },	//Scene3
+};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -146,7 +154,7 @@ inline void Msg_Print() {
  */
 static void Matrix_Control(uint8_t control) {
 	if (control == Lr_MATRIX_START) {
-//		MTRX_Init();
+		MTRX_Init();
 	}
 
 	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, (control == Lr_MATRIX_START)? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -231,8 +239,9 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
 	Start_MsgTimer(MSG_TIMER_DEFAULT);
 
-	// Check SW1 and SW3 is pushed at Power On
-	if (0) { // MTD: define key combination
+	// Check SW17 and SW18 is pushed at Power On
+	uint16_t r = (~GPIOA->IDR);
+	if ((r & BOOT_DFU_MASK) != 0) { // MTD: define key combination
 		LrState = LR_USB_DFU;
 	} else {
 		// MX_USB_DEVICE_Init() must be delayed until here for launch DFU.
@@ -257,7 +266,7 @@ int main(void)
 
 			// Connection banner
 			Start_MsgTimer(MSG_TIMER_CONNECT);
-//			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
+			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
 			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
 			LrState = LR_USB_LINKED;
 
@@ -326,7 +335,7 @@ int main(void)
 		if (LED_Timer_Update == true) { // 24ms interval
 			for (uint8_t i = 0; i < LED_COUNT; i++) {
 				if (LEDTimer[i] != LED_TIMER_CONSTANT && --LEDTimer[i] == 0) {
-//					LED_SetPulse(i, LED_Scene[LrScene][i], LED_TIMER_CONSTANT);
+					LED_SetPulse(i, LED_Scene[LrScene][i], LED_TIMER_CONSTANT);
 				}
 			}
 			LED_Timer_Update = false;

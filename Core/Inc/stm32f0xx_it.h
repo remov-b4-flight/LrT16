@@ -45,6 +45,10 @@ extern "C" {
 
  //! @defgroup LrTMAX Ports on Board
 #define Mx_GPIO_Port GPIOB
+#define SSW_GPIO_Port GPIOA
+#define UNDO_SSW_MASK 0x0400
+#define SCENE_SSW_MASK 0x0002
+
 #define ENC0_GPIO_Port GPIOB
 #define ENC1_GPIO_Port GPIOB
 #define ENC2_GPIO_Port GPIOB

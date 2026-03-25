@@ -13,7 +13,7 @@
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim14;
 extern bool	isLEDsendpulse;
-//extern uint8_t	LED_Scene[SCENE_COUNT][LED_COUNT];
+extern uint8_t	LED_Scene[SCENE_COUNT][LED_COUNT];
 
 uint8_t	LEDColor[LED_COUNT];		// coded LED color value
 uint16_t	LEDPulse[TOTAL_BITS+1];	// Data formed PWM width send to LED
@@ -83,7 +83,7 @@ static void LED_Delay_us() {
  * @param scene	Scene No
  */
 void LED_SetScene(uint8_t scene) {
-//	memcpy(LEDColor, LED_Scene[scene], LED_COUNT);
+	memcpy(LEDColor, LED_Scene[scene], LED_COUNT);
 	LED_SendPulse();
 }
 

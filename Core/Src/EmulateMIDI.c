@@ -27,9 +27,7 @@ QUEUE	midi_rx_que;
 
 // keyboard variable
 //! If true, ISR detected any Switch was pushed.
-bool	isAnyMatrixPushed;
-//! If true ISR detected any Encoder was moved.
-bool	isAnyEncoderMoved;
+bool	isAnyTouched;
 //! Switch pressed status set by timer scanning.
 MTX_SCAN	MTX_Stat;
 //! Encoder moved status set by timer scanning.
@@ -77,7 +75,7 @@ void EmulateMIDI_Init() {
 
 /**
  *	@brief	Generate MIDI message and Send to host by User interaction.
- *	@pre	isAnyMatrixPushed 	any Switches was pressed or not
+ *	@pre	isAnySwitchPushed 	any Switches was pressed or not
  *	@pre	isAnyEncodersMoved 	any Encoders was moved or not
  *	@pre	ENCSW_Stat	current Switches/Encoders status
  */
@@ -100,13 +98,12 @@ void EmulateMIDI() {
 		}
 		Msg_Print();
 		Start_MsgTimer(MSG_TIMER_DEFAULT);
-	} else if (isAnyMatrixPushed == true) {
-		bitpos = ntz32(MTX_Stat.mix.n01);
+	} else if (isAnySwitchPushed == true) {
 		bitpos = ntz16(MTX_Stat.mix.n2);
 
 		if ( MTX_Stat.ll != 0) { //Check Matrix switches/encoders
 			//Send 'Note On' message from switches/encoders matrix.
-			uint8_t	note ;//= ((MTX_Stat.wd & MASK_ENCPUSH)? NOTE_OFFSET : 0) + (LrScene * NOTES_PER_SCENE) + bitpos;
+			uint8_t	note = ((MTX_Stat.m2.n2b & MASK_ENCPUSH)? NOTE_OFFSET : 0) + (LrScene * NOTES_PER_SCENE) + bitpos;
 			if (MTX_Stat.mix.b == RESET_SW_PATTERN) {
 				HAL_NVIC_SystemReset();
 			} else if (bitpos == SCENE_BIT) { //is [SCENE] switch pressed?
@@ -150,18 +147,18 @@ void EmulateMIDI() {
 			isSendMIDIMessage = true;
 			isPrev_SwPush = false;
 		}
-		isAnyMatrixPushed = false;
+		isAnySwitchPushed = false;
 	} else if ( isAnyEncoderMoved == true) { //check encoder movements
 		uint8_t	axis = enc_move.bits.axis;
 		uint8_t channel = CC_CH_OFFSET + (LrScene * CC_CH_PER_SCENE) + axis;
 
-//		bitpos = PROF_ENC1ST + (axis * 2);
+		bitpos = PROF_ENC1ST + (axis * 2);
 
 		if (enc_move.bits.move == ENC_MOVE_CW){
 			isSendMIDIMessage = MIDI_CC_Inc(channel);
 		} else if (enc_move.bits.move == ENC_MOVE_CCW){
 			isSendMIDIMessage = MIDI_CC_Dec(channel);
-			bitpos += 1;
+			bitpos += 1; // for LED_SetPulse()
 		} else {
 			goto rot_stopped_exits;
 		}
@@ -192,10 +189,8 @@ rot_stopped_exits:
 	}
 	//Flash LED.
 	if (isLEDflash == true) {
-		/*
-		LED_SetPulse(prof_table[LrScene][bitpos].axis,
+//		LED_SetPulse(prof_table[LrScene][bitpos].axis,
 					prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
-		*/
 	}
 
 }
