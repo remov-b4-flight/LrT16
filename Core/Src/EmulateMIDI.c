@@ -9,7 +9,6 @@
 #include "stm32f0xx_it.h"
 
 extern	uint8_t	LrScene;
-extern	char *scene_name[SCENE_COUNT];
 extern	USBD_HandleTypeDef *pInstance;
 extern	bool isScene_Timeout;
 //! keeps previous 'Note On' note number For sending 'Note Off' message.
@@ -27,7 +26,9 @@ QUEUE	midi_rx_que;
 
 // keyboard variable
 //! If true, ISR detected any Switch was pushed.
-bool	isAnyTouched;
+bool	isAnyMatrixPushed;
+//! If true ISR detected any Encoder was moved.
+bool	isAnyEncoderMoved;
 //! Switch pressed status set by timer scanning.
 MTX_SCAN	MTX_Stat;
 //! Encoder moved status set by timer scanning.
@@ -75,7 +76,7 @@ void EmulateMIDI_Init() {
 
 /**
  *	@brief	Generate MIDI message and Send to host by User interaction.
- *	@pre	isAnySwitchPushed 	any Switches was pressed or not
+ *	@pre	isAnyMatrixPushed 	any Switches was pressed or not
  *	@pre	isAnyEncodersMoved 	any Encoders was moved or not
  *	@pre	ENCSW_Stat	current Switches/Encoders status
  */
@@ -98,15 +99,16 @@ void EmulateMIDI() {
 		}
 		Msg_Print();
 		Start_MsgTimer(MSG_TIMER_DEFAULT);
-	} else if (isAnySwitchPushed == true) {
+	} else if (isAnyMatrixPushed == true) {
 		bitpos = ntz16(MTX_Stat.mix.n2);
 
 		if ( MTX_Stat.ll != 0) { //Check Matrix switches/encoders
 			//Send 'Note On' message from switches/encoders matrix.
-			uint8_t	note = ((MTX_Stat.m2.n2b & MASK_ENCPUSH)? NOTE_OFFSET : 0) + (LrScene * NOTES_PER_SCENE) + bitpos;
-			if (MTX_Stat.mix.b == RESET_SW_PATTERN) {
+			uint8_t	note;
+			if (MTX_Stat.mix.b0 == 1 && MTX_Stat.mix.b1 == 1) { // RESET command
 				HAL_NVIC_SystemReset();
-			} else if (bitpos == SCENE_BIT) { //is [SCENE] switch pressed?
+			}else if (MTX_Stat.mix.b0 == 1) {
+				note = ((SCENE_COUNT + 1) * NOTES_PER_SCENE)+0; //is [SCENE] switch pressed?
 			   	//Move to next Scene.
 				if ( (++LrScene) >= SCENE_COUNT  ) {
 					LrScene = Lr_SCENE0;
@@ -114,11 +116,13 @@ void EmulateMIDI() {
 					LrScene = Lr_SCENE0;
 					isScene_Timeout = false;
 				}
-
 				LED_SetScene(LrScene);
 				isPrev_Scene = true;
+			}else if(MTX_Stat.mix.b1 == 1) {
+				note = ((SCENE_COUNT + 1) * NOTES_PER_SCENE)+1;
 			} else {
-//				LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
+				note = (LrScene * NOTES_PER_SCENE) + bitpos;
+				//				LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
 			}
 			isSendMIDIMessage = true;
 
@@ -147,7 +151,7 @@ void EmulateMIDI() {
 			isSendMIDIMessage = true;
 			isPrev_SwPush = false;
 		}
-		isAnySwitchPushed = false;
+		isAnyMatrixPushed = false;
 	} else if ( isAnyEncoderMoved == true) { //check encoder movements
 		uint8_t	axis = enc_move.bits.axis;
 		uint8_t channel = CC_CH_OFFSET + (LrScene * CC_CH_PER_SCENE) + axis;
@@ -190,7 +194,7 @@ rot_stopped_exits:
 	//Flash LED.
 	if (isLEDflash == true) {
 //		LED_SetPulse(prof_table[LrScene][bitpos].axis,
-					prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
+//					prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
 	}
 
 }

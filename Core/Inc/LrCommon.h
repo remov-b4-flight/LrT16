@@ -40,7 +40,7 @@ typedef union enc_scan_t {
 //! Type for switch matrix
 typedef union mtrx_scan_t {
     uint64_t ll;
-    struct ks_bits_t {
+    struct scan_entry_t {
 		uint16_t n0;	//! < Switch Line0
 		uint16_t n1;	//! < Switch Line1
 		uint16_t n2;	//! < Switch Line2
@@ -48,17 +48,14 @@ typedef union mtrx_scan_t {
 		uint16_t b1:1;	//! < un-matrixed switch scene
 		uint16_t dummy:14;
     } sh;
-    struct cc_bits16_t {
-    	uint32_t n01;
+    struct analyze_t {
+//    	uint32_t n01;
+    	ENC_SCAN n01;
     	uint16_t n2;
-		uint16_t b:2;	//! < un-matrixed switch undo
+		uint16_t b0:1;	//! < un-matrixed undo
+		uint16_t b1:1;	//! < un-matrixed scene
 		uint16_t dummy:14;
     } mix;
-    struct cc_bits32_t {
-    	uint32_t n01;
-    	uint32_t n2b:18; // combinated n2*b
-		uint16_t dummy:14;
-    } m2;
 } MTX_SCAN;
 
 //! Encoder movement expression
@@ -120,14 +117,11 @@ enum lr_matrix_t {
 	Lr_MATRIX_STOP = 0,
 	Lr_MATRIX_START = 1,
 };
-//! number of scene
+//! number of scenes (avail. range:1~7)
+//! @note need to match ((SCENE_COUNT+1) * ENC_COUNT) < 127
 #define SCENE_COUNT		4
-//! prof. define structure (in key_define.c)
-#define DEFINES_PER_SCENE	( ENC_SW_COUNT + (ENC_COUNT * 2) )
 //! Assigned notes per scene.
 #define NOTES_PER_SCENE	16
-//! Define key that designated for scene change.
-#define SCENE_BIT		49
 //! Scene timeout (1 hour)
 #ifdef DEBUG
 #define SCENE_TIMEOUT (90*1000*1000 / (TIM_PERIOD_MATRIX + 1))

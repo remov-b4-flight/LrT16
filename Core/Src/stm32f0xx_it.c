@@ -65,7 +65,7 @@ uint16_t previous_push;
 //! Value of scanned from key matrix.
 MTX_SCAN current_scan;
 //! Previous scanned bits
-uint16_t previous_mtrx;
+uint32_t previous_mtrx;
 //! Previous encoder state array
 uint8_t	enc_prev[ENC_COUNT];
 //! CUrrent encoder state array
@@ -81,11 +81,11 @@ const uint8_t enc_table[4][4] = {
 //! Current encoder scan value load by timer interrupt
 ENC_SCAN current_enc;
 //! previous encoder scan value
-uint16_t previous_enc;
+uint32_t previous_enc;
 //! Current detected bits as movement
-uint16_t current_move;
+uint32_t current_move;
 //! Previous detected bits
-uint16_t previous_move;
+uint32_t previous_move;
 //! Scene counter
 uint32_t scene_timer;
 //! De-chatter timer counter
@@ -102,7 +102,8 @@ extern TIM_HandleTypeDef htim6;
 /* USER CODE BEGIN EV */
 extern TIM_HandleTypeDef htim3;
 extern uint8_t	ENCSW_Line;
-extern bool		isAnyTouched;
+extern bool		isAnyMatrixPushed;
+extern bool		isAnyEncoderMoved;
 extern MTX_SCAN	MTX_Stat;
 extern ENC_SCAN	ENC_Stat;
 extern char		*Msg_Buffer[];
@@ -250,17 +251,54 @@ void TIM2_IRQHandler(void)
 			current_scan.sh.b1 = (r & SCENE_SSW_MASK)? 1:0;
 
 			//Switch detection
-			if (previous_mtrx.ll == current_scan.ll){
-				current_push = current_scan.ll;
-				uint32_t dif = current_push.ll ^ previous_push.ll;
-				MTX_Stat.ll = current_push;
+			if (previous_mtrx == current_scan.mix.n2){
+				current_push = current_scan.mix.n2;
+				uint32_t dif = current_push ^ previous_push;
+				MTX_Stat.mix.n2 = current_push;
 				if (dif != 0){
 					previous_push = current_push;
-					isAnyTouched = true;
+					isAnyMatrixPushed = true;
 					scene_timer = 0;
 				}
 			}
-			previous_mtrx = current_scan.wd;
+			previous_mtrx = current_scan.mix.n2;
+
+			if (previous_enc == current_enc.lo) { // Encoder signals are stable
+				current_move = current_enc.lo;
+				uint16_t dif = previous_move ^ current_move;
+				if (dif != 0) { // If any encoder has moved.
+					previous_move = current_move;
+
+					// Determine axis
+					uint8_t	movedbits = ntz16(dif);
+					uint8_t	axis = movedbits / 2;
+
+					enc_move.bits.move = enc_table[enc_prev[axis]] [enc_current[axis]];
+					enc_move.bits.axis = axis;
+
+					enc_prev[axis] = enc_current[axis];
+					if (dechatter_timer >= dechatter_rate) {
+						isAnyEncoderMoved = true;
+						scene_timer = 0;
+					} else {
+						if(( dechatter_rate - dechatter_timer) > DECHATTER_THR) {
+							dechatter_rate -= DECHATTER_DEC;
+							if (dechatter_rate < DECHATTER_MIN) {
+								dechatter_rate = DECHATTER_MIN;
+							}
+						}
+					}
+					dechatter_timer = 0;
+				} else { // all encoder not moved.
+					dechatter_rate = DECHATTER_MAX;
+				}
+			} else {
+				previous_enc = current_enc.lo;
+			}
+			if (dechatter_timer < dechatter_rate) {
+				dechatter_timer++;
+			}
+
 			break;
 	}
 	if (scene_timer++ > SCENE_TIMEOUT) {
@@ -270,7 +308,7 @@ void TIM2_IRQHandler(void)
 		if (LrScene != Lr_SCENE0) {
 			isScene_Timeout = true;
 			MTX_Stat.sh.b1 = 1;
-			isAnySwitchPushed = true;
+			isAnyMatrixPushed = true;
 			LrScene = Lr_SCENE3;
 #endif
 		}

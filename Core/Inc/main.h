@@ -75,6 +75,7 @@ void Msg_Print();
 #define TIM_PRESC_1uS 47
 #define TIM_PERIOD_MATRIX 7999
 #define TIM_PERIOD_OLED 32767
+#define TIM_PERIOD_SPEAKER 370
 #define L0_Pin GPIO_PIN_13
 #define L0_GPIO_Port GPIOC
 #define L1_Pin GPIO_PIN_14
