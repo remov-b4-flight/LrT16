@@ -214,6 +214,8 @@ int main(void)
 /* USER CODE BEGIN MX_USB_Devive_Init LrTMAX*/
 //  MX_USB_DEVICE_Init(); must be delayed.
 /* USER CODE END MX_USB_Devive_Init LrTMAX*/
+  MX_I2C2_Init();
+  MX_TIM7_Init();
   MX_TIM6_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
@@ -433,7 +435,7 @@ static void MX_TIM1_Init(void)
   htim1.Init.Period = TIM_PERIOD_SPEAKER;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
-  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
   {
     Error_Handler();
@@ -454,7 +456,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
-  sConfigOC.Pulse = 2700;
+  sConfigOC.Pulse = TIM_PERIOD_SPEAKER;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -580,7 +582,7 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM3_Init 2 */
-
+	__HAL_DMA_DISABLE_IT(&hdma_tim3_ch1_trig,(DMA_CCR_HTIE | DMA_CCR_TEIE));//Disable DMA1 half or error transfer interrupt(for LEDs).
   /* USER CODE END TIM3_Init 2 */
   HAL_TIM_MspPostInit(&htim3);
 
@@ -691,9 +693,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, L0_Pin|L1_Pin|L2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, M4_Pin|M5_Pin, GPIO_PIN_RESET);
-
   /*Configure GPIO pins : L0_Pin L1_Pin L2_Pin */
   GPIO_InitStruct.Pin = L0_Pin|L1_Pin|L2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -709,21 +708,14 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : M0_Pin M1_Pin M2_Pin M10_Pin
                            M11_Pin M12_Pin M13_Pin M14_Pin
-                           M15_Pin M3_Pin M6_Pin M7_Pin
-                           M8_Pin M9_Pin */
+                           M15_Pin M3_Pin M4_Pin M5_Pin
+                           M6_Pin M7_Pin M8_Pin M9_Pin */
   GPIO_InitStruct.Pin = M0_Pin|M1_Pin|M2_Pin|M10_Pin
                           |M11_Pin|M12_Pin|M13_Pin|M14_Pin
-                          |M15_Pin|M3_Pin|M6_Pin|M7_Pin
-                          |M8_Pin|M9_Pin;
+                          |M15_Pin|M3_Pin|M4_Pin|M5_Pin
+                          |M6_Pin|M7_Pin|M8_Pin|M9_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : M4_Pin M5_Pin */
-  GPIO_InitStruct.Pin = M4_Pin|M5_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
