@@ -12,6 +12,7 @@
 #include "usbd_midi_if.h"
 #include "bitcount.h"
 #include "led.h"
+#include "speaker.h"
 
 //! define switch combination to invoke reset
 #define RESET_SW_PATTERN	0x3	// in cc_bits.mix.b [Undo]+[Scene]
@@ -31,8 +32,6 @@ typedef union ch_val_t {
 	} by;
 }CH_VAL;
 
-//! Bit mask pattern for Encoder push
-#define MASK_ENCPUSH	0xff00
 //! Bit position for 1st encoder
 #define PROF_ENC1ST	16
 

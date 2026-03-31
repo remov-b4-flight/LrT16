@@ -49,6 +49,7 @@
 /* USER CODE BEGIN PM */
 extern	uint8_t	LEDColor[LED_COUNT];
 extern	uint8_t	LEDTimer[LED_COUNT];
+extern	uint8_t SPEAKER_Timer;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -337,6 +338,9 @@ int main(void)
 				if (LEDTimer[i] != LED_TIMER_CONSTANT && --LEDTimer[i] == 0) {
 					LED_SetPulse(i, LED_Scene[LrScene][i], LED_TIMER_CONSTANT);
 				}
+			}
+			if (SPEAKER_Timer != SPEAKER_TIMER_CONTINUOUS && --SPEAKER_Timer == 0) {
+				SPEAKER_Stop();
 			}
 			LED_Timer_Update = false;
 			continue;

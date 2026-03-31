@@ -253,9 +253,9 @@ void TIM2_IRQHandler(void)
 			//Switch detection
 			if (previous_mtrx == current_scan.mix.n2){
 				current_push = current_scan.mix.n2;
-				uint32_t dif = current_push ^ previous_push;
+				uint16_t sw_dif = current_push ^ previous_push;
 				MTX_Stat.mix.n2 = current_push;
-				if (dif != 0){
+				if (sw_dif != 0){
 					previous_push = current_push;
 					isAnyMatrixPushed = true;
 					scene_timer = 0;
@@ -265,12 +265,12 @@ void TIM2_IRQHandler(void)
 
 			if (previous_enc == current_enc.lo) { // Encoder signals are stable
 				current_move = current_enc.lo;
-				uint16_t dif = previous_move ^ current_move;
-				if (dif != 0) { // If any encoder has moved.
+				uint32_t enc_dif = previous_move ^ current_move;
+				if (enc_dif != 0) { // If any encoder has moved.
 					previous_move = current_move;
 
 					// Determine axis
-					uint8_t	movedbits = ntz16(dif);
+					uint8_t	movedbits = ntz32(enc_dif);
 					uint8_t	axis = movedbits / 2;
 
 					enc_move.bits.move = enc_table[enc_prev[axis]] [enc_current[axis]];

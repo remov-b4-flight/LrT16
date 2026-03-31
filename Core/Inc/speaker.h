@@ -9,8 +9,14 @@
 
 #include <stdint.h>
 
-	SPEAKER_Initialize();
-	SPEAKER_PlaySound(uint16_t freq,uint16_t duration);
-	SPEAKER_Stop();
+#define SPEAKER_TIMER_CONTINUOUS 0xff
+#define FREQ_2700HZ 370
+#define FREQ_F7 357
+#define FREQ_E7 379
+#define FREQ_D7 425
+
+void SPEAKER_Initialize();
+void SPEAKER_PlaySound(uint16_t freq,uint16_t duration);
+void SPEAKER_Stop();
 
 #endif /* INC_SPEAKER_H_ */
