@@ -1,6 +1,6 @@
 # LrTMAX
 Adobe Lightroom MIDI Developer Controller project (STM32F072Cx based)  
-LrTMAX MIDI controller is formed by embedded hardware board and its firmware.  
+LrT16 MIDI controller is formed by embedded hardware circuit board and its firmware.  
 It used with [MIDI2LR](https://github.com/rsjaffe/MIDI2LR) software,  
 You can control development parameters on RAW/JPEG photos.  
 ## Video(in brother project LrE-6)
@@ -8,7 +8,7 @@ You can control development parameters on RAW/JPEG photos.
 detailed Video on [YouTube (LrE-6)](https://www.youtube.com/watch?v=oeDpP1sG9_Y)  
 ## Photo
 ![LrTMAX_photo.png](https://github.com/remov-b4-flight/LrTMAX.documents/blob/master/LrTMAX_photo.png)  
-LrTMAX is near to [LrE-6](https://github.com/remov-b4-flight/LrE-6)  
+LrT16 is near to [LrE-6](https://github.com/remov-b4-flight/LrE-6) and [LrTMAX](https://github.com/remov-b4-flight/LrTMAX) 
 Information related Build,Configure & Use are exists on wiki.  
 ***
 "Lightroom Classic" is Registerd Trademark of Adobe Corporation.
