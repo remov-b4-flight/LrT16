@@ -264,13 +264,26 @@ int main(void)
 			// USB device configured by host
 
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
-			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
+//			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
+			SPEAKER_Playsound(FREQ_C7, 500);
 			Start_All_Encoders();				// Start rotary encoder.
 
 			// Connection banner
 			Start_MsgTimer(MSG_TIMER_CONNECT);
 			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
-			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
+			uint8_t color;
+			uint8_t ver_bits;
+			if (USBD_DEVICE_VER < 0x0100) {
+				color = LED_BLUE;
+				ver_bits = (USBD_DEVICE_VER) & 0xFF;
+			}else{
+				color = LED_ORANGE;
+				ver_bits = (USBD_DEVICE_VER >> 4) & 0xFF;
+			}
+			for (uint8_t i = 0; i < LEC_COUNT; i++) {
+				LEDColor[i] = (ver_bits & (1<<i)) ? color : LED_OFF;
+			}
+//			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
 			LrState = LR_USB_LINKED;
 
 		} else if (LrState == LR_USB_LINKED) {
@@ -318,7 +331,8 @@ int main(void)
 			if (Msg_Off_Flag == true) {
 				if (nc_count == 0) {
 					// Show DFU banner
-					Msg_Print();
+					//Msg_Print();
+					SPEAKER_Playsound(FREQ_A7,1000);
 					nc_count++;
 				} else if(nc_count == 1) {
 					// Show LED pattern
