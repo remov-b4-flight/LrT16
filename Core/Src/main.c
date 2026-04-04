@@ -233,6 +233,8 @@ int main(void)
 	GPIOA->MODER &= ~(GPIO_MODER_MODER6_1);
 	GPIOA->MODER |=	GPIO_MODER_MODER6_0;
 
+	// Set signal speed to SLOW for SPEAKER(PA8)
+	GPIOA->OSPEEDR &= 0xFFF3FFFF;
   /* USER CODE END 2 */
 
   /* Infinite loop */
