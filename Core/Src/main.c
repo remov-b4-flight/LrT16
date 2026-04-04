@@ -28,6 +28,7 @@
 #include "LrCommon.h"
 #include "midi.h"
 #include "led.h"
+#include "speaker.h"
 #include "bitcount.h"
 #include "usbd_midi_if.h"
 #include "EmulateMIDI.h"
@@ -282,7 +283,7 @@ int main(void)
 				color = LED_ORANGE;
 				ver_bits = (USBD_DEVICE_VER >> 4) & 0xFF;
 			}
-			for (uint8_t i = 0; i < LEC_COUNT; i++) {
+			for (uint8_t i = 0; i < LED_COUNT; i++) {
 				LEDColor[i] = (ver_bits & (1<<i)) ? color : LED_OFF;
 			}
 //			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
