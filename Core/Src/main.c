@@ -215,8 +215,6 @@ int main(void)
 /* USER CODE BEGIN MX_USB_Devive_Init LrTMAX*/
 //  MX_USB_DEVICE_Init(); must be delayed.
 /* USER CODE END MX_USB_Devive_Init LrTMAX*/
-  MX_I2C2_Init();
-  MX_TIM7_Init();
   MX_TIM6_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
@@ -267,7 +265,7 @@ int main(void)
 			// USB device configured by host
 
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
-//			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
+			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
 			SPEAKER_Playsound(FREQ_C7, 500);
 			Start_All_Encoders();				// Start rotary encoder.
 
@@ -335,7 +333,7 @@ int main(void)
 				if (nc_count == 0) {
 					// Show DFU banner
 					//Msg_Print();
-					SPEAKER_Playsound(FREQ_A7,1000);
+//					SPEAKER_Playsound(FREQ_A7,1000);
 					nc_count++;
 				} else if(nc_count == 1) {
 					// Show LED pattern
