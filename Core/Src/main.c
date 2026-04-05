@@ -266,7 +266,7 @@ int main(void)
 
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
 			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
-			SPEAKER_Playsound(FREQ_C7, 500);
+			SPEAKER_PlaySound(FREQ_C7, 500);
 			Start_All_Encoders();				// Start rotary encoder.
 
 			// Connection banner
