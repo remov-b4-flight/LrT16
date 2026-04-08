@@ -68,7 +68,7 @@ void Msg_Print();
 #define TIM_PERIOD_RGBLED 24576
 #define PWM_LO 15
 #define PWM_PERIOD 59
-#define Lr_PID 0xA380
+#define Lr_PID 0xB747
 #define TIM_PERIOD_ENC 1600
 #define TIM_PRESC_100uS 4799
 #define Lr_VENDOR "Ruffles Inc."
@@ -135,7 +135,7 @@ void Msg_Print();
 //! LED TIM3 definitions
 #define LED_TIM_RETRY_WAIT	21		//Transfer period for I2C
 //! ON boot check bit patter for enter DFU
-#define BOOT_DFU_MASK	0x402
+#define BOOT_DFU_MASK	0x202
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

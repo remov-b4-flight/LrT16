@@ -213,7 +213,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM14_Init();
 /* USER CODE BEGIN MX_USB_Devive_Init LrTMAX*/
-//  MX_USB_DEVICE_Init(); must be delayed.
+  MX_USB_DEVICE_Init(); //must be delayed.
 /* USER CODE END MX_USB_Devive_Init LrTMAX*/
   MX_TIM6_Init();
   MX_TIM2_Init();
@@ -243,13 +243,13 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
 	Start_MsgTimer(MSG_TIMER_DEFAULT);
 
-	// Check SW17 and SW18 is pushed at Power On
+	// Check SW17/PA9 and SW18/PA2 is pushed at Power On
 	uint16_t r = (~GPIOA->IDR);
 	if ((r & BOOT_DFU_MASK) != 0) { // MTD: define key combination
 		LrState = LR_USB_DFU;
 	} else {
 		// MX_USB_DEVICE_Init() must be delayed until here for launch DFU.
-		MX_USB_DEVICE_Init();
+		//MX_USB_DEVICE_Init();
 		LrState = LR_USB_NOLINK;
 	}
 
@@ -258,7 +258,7 @@ int main(void)
 
 	// LED Initialize
 	LED_SetScene(LrScene);
-
+	SPEAKER_PlaySound(FREQ_2700HZ, 50000);
 	// Main loop
 	while (1) {
 		if (LrState == LR_USB_LINKUP) {
@@ -471,7 +471,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
-  sConfigOC.Pulse = TIM_PERIOD_SPEAKER;
+  sConfigOC.Pulse = (TIM_PERIOD_SPEAKER / 2);
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
