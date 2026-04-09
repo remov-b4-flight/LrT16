@@ -246,7 +246,7 @@ void TIM2_IRQHandler(void)
 			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
 			ENCSW_Line = L0;
-			r = (SSW_GPIO_Port->IDR);
+			r = ~(SSW_GPIO_Port->IDR);
 			current_scan.sh.b0 = (r & UNDO_SSW_MASK)? 1:0;
 			current_scan.sh.b1 = (r & SCENE_SSW_MASK)? 1:0;
 

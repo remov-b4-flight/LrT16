@@ -72,9 +72,10 @@ void Msg_Print();
 #define TIM_PERIOD_ENC 1600
 #define TIM_PRESC_100uS 4799
 #define Lr_VENDOR "Ruffles Inc."
+#define TIM_PERIOD_SPEAKER 370
 #define TIM_PRESC_1uS 47
 #define TIM_PERIOD_MATRIX 7999
-#define TIM_PERIOD_SPEAKER 370
+#define TIM_SPEAKER_PULSE_WIDTH 185
 #define L0_Pin GPIO_PIN_13
 #define L0_GPIO_Port GPIOC
 #define L1_Pin GPIO_PIN_14
@@ -135,7 +136,8 @@ void Msg_Print();
 //! LED TIM3 definitions
 #define LED_TIM_RETRY_WAIT	21		//Transfer period for I2C
 //! ON boot check bit patter for enter DFU
-#define BOOT_DFU_MASK	0x202
+#define BOOT_DFU_MASK	0x404
+#define LED_PULSE_1S	42
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

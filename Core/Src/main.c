@@ -210,7 +210,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_TIM3_Init();
-  MX_TIM1_Init();
+//  MX_TIM1_Init();
   MX_TIM14_Init();
 /* USER CODE BEGIN MX_USB_Devive_Init LrTMAX*/
   MX_USB_DEVICE_Init(); //must be delayed.
@@ -244,8 +244,8 @@ int main(void)
 	Start_MsgTimer(MSG_TIMER_DEFAULT);
 
 	// Check SW17/PA9 and SW18/PA2 is pushed at Power On
-	uint16_t r = (~GPIOA->IDR);
-	if ((r & BOOT_DFU_MASK) != 0) { // MTD: define key combination
+	uint16_t r = (~(GPIOA->IDR)) & BOOT_DFU_MASK;
+	if (r == BOOT_DFU_MASK) { // MTD: define key combination
 		LrState = LR_USB_DFU;
 	} else {
 		// MX_USB_DEVICE_Init() must be delayed until here for launch DFU.
@@ -258,7 +258,8 @@ int main(void)
 
 	// LED Initialize
 	LED_SetScene(LrScene);
-	SPEAKER_PlaySound(FREQ_2700HZ, 50000);
+	HAL_TIM_Base_Start(&htim1);
+
 	// Main loop
 	while (1) {
 		if (LrState == LR_USB_LINKUP) {
@@ -283,8 +284,9 @@ int main(void)
 			}
 			for (uint8_t i = 0; i < LED_COUNT; i++) {
 				LEDColor[i] = (ver_bits & (1<<i)) ? color : LED_OFF;
+				LED_SetPulse(i,LEDColor[i], LED_PULSE_1S);
 			}
-//			LED_SetPulse(LED_IDX_ENC0, LED_PINK, LED_TIM_CONNECT);
+
 			LrState = LR_USB_LINKED;
 
 		} else if (LrState == LR_USB_LINKED) {
@@ -460,7 +462,7 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_OC_Init(&htim1) != HAL_OK)
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -470,14 +472,14 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
-  sConfigOC.Pulse = (TIM_PERIOD_SPEAKER / 2);
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = TIM_SPEAKER_PULSE_WIDTH;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-  if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
