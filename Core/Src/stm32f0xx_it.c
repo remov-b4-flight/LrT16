@@ -92,6 +92,10 @@ uint32_t scene_timer;
 uint8_t dechatter_timer;
 //! De-chatter timer counter
 uint8_t dechatter_rate;
+//
+uint16_t prev_nm;
+uint16_t current_nm;
+uint16_t prev_nm_push;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -239,29 +243,6 @@ void TIM2_IRQHandler(void)
 			ENCSW_Line++;
 			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
-			break;
-		case L2: /* ENC push SW 0-15*/
-			r = (Mx_GPIO_Port->IDR);
-			current_scan.sh.n2 = (r);
-			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
-			ENCSW_Line = L0;
-			r = ~(SSW_GPIO_Port->IDR);
-			current_scan.sh.b0 = (r & UNDO_SSW_MASK)? 1:0;
-			current_scan.sh.b1 = (r & SCENE_SSW_MASK)? 1:0;
-
-			//Switch detection
-			if (previous_mtrx == current_scan.mix.n2){
-				current_push = current_scan.mix.n2;
-				uint16_t sw_dif = current_push ^ previous_push;
-				MTX_Stat.mix.n2 = current_push;
-				if (sw_dif != 0){
-					previous_push = current_push;
-					isAnyMatrixPushed = true;
-					scene_timer = 0;
-				}
-			}
-			previous_mtrx = current_scan.mix.n2;
 
 			if (previous_enc == current_enc.lo) { // Encoder signals are stable
 				current_move = current_enc.lo;
@@ -300,14 +281,49 @@ void TIM2_IRQHandler(void)
 			}
 
 			break;
+		case L2: /* ENC push SW 0-15*/
+			r = (Mx_GPIO_Port->IDR);
+			current_scan.sh.n2 = (r);
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
+			ENCSW_Line = L0;
+			r = (SSW_GPIO_Port->IDR);
+			current_scan.sh.nm = (r);
+
+			//Switch detection
+			if (previous_mtrx == current_scan.mix.n2){
+				current_push = current_scan.mix.n2;
+				uint16_t sw_dif = current_push ^ previous_push;
+				MTX_Stat.mix.n2 = current_push;
+				if (sw_dif != 0) {
+					previous_push = current_push;
+					isAnyMatrixPushed = true;
+					scene_timer = 0;
+				}
+			}
+			previous_mtrx = current_scan.mix.n2;
+
+			if (prev_nm == current_scan.sh.nm){
+				current_nm = current_scan.sh.nm;
+				uint16_t nm_dif = current_nm ^ prev_nm_push;
+				MTX_Stat.mix.nm = current_nm;
+				if(nm_dif != 0) {
+					prev_nm_push = current_nm;
+					isAnyMatrixPushed = true;
+				}
+			}
+			prev_nm = current_scan.mix.nm;
+
+			break;
 	}
+
 	if (scene_timer++ > SCENE_TIMEOUT) {
 		scene_timer = 0;
 #ifndef NO_SCENE_TO
 		// do scene switching to Lr_SCENE0 as scene switch is pushed
 		if (LrScene != Lr_SCENE0) {
 			isScene_Timeout = true;
-			MTX_Stat.sh.b1 = 1;
+			MTX_Stat.sh.nm = 1;
 			isAnyMatrixPushed = true;
 			LrScene = Lr_SCENE3;
 #endif
@@ -328,6 +344,7 @@ void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
   LED_Timer_Update = true;
+  Msg_Timer_Update = true;
   /* USER CODE END TIM6_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */

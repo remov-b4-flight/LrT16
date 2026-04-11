@@ -44,17 +44,12 @@ typedef union mtrx_scan_t {
 		uint16_t n0;	//! < Switch Line0
 		uint16_t n1;	//! < Switch Line1
 		uint16_t n2;	//! < Switch Line2
-		uint16_t b0:1;	//! < un-matrixed switch undo
-		uint16_t b1:1;	//! < un-matrixed switch scene
-		uint16_t dummy:14;
+		uint16_t nm;
     } sh;
     struct analyze_t {
-//    	uint32_t n01;
-    	ENC_SCAN n01;
+    	ENC_SCAN n01;	// 32bi;t
     	uint16_t n2;
-		uint16_t b0:1;	//! < un-matrixed undo
-		uint16_t b1:1;	//! < un-matrixed scene
-		uint16_t dummy:14;
+    	uint16_t nm;
     } mix;
 } MTX_SCAN;
 
@@ -143,8 +138,8 @@ enum lr_matrix_t {
 #define LED_TIM_CONNECT	64		//1.5Sec
 
 //! @defgroup Screen timer definitions
-#define MSG_TIMER_DEFAULT	47		//1.5Sec (1 tick=32.7ms)
-#define MSG_TIMER_NOLINK	31		//1Sec (OLED update in USB not connected)
-#define MSG_TIMER_CONNECT	122		//4Sec (USB connected)
+#define MSG_TIMER_DEFAULT	62		//1.5Sec (1 tick=24ms)
+#define MSG_TIMER_NOLINK	42		//1Sec (OLED update in USB not connected)
+#define MSG_TIMER_CONNECT	167		//4Sec (USB connected)
 
 #endif /* INC_LRCOMMON_H_ */

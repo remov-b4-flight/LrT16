@@ -138,6 +138,7 @@ void Msg_Print();
 //! ON boot check bit patter for enter DFU
 #define BOOT_DFU_MASK	0x404
 #define LED_PULSE_1S	42
+#define LED_PULSE_2S	83
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -210,10 +210,10 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_TIM3_Init();
-//  MX_TIM1_Init();
+  MX_TIM1_Init();
   MX_TIM14_Init();
 /* USER CODE BEGIN MX_USB_Devive_Init LrTMAX*/
-  MX_USB_DEVICE_Init(); //must be delayed.
+//  MX_USB_DEVICE_Init(); //must be delayed.
 /* USER CODE END MX_USB_Devive_Init LrTMAX*/
   MX_TIM6_Init();
   MX_TIM2_Init();
@@ -249,7 +249,7 @@ int main(void)
 		LrState = LR_USB_DFU;
 	} else {
 		// MX_USB_DEVICE_Init() must be delayed until here for launch DFU.
-		//MX_USB_DEVICE_Init();
+		MX_USB_DEVICE_Init();
 		LrState = LR_USB_NOLINK;
 	}
 
@@ -258,7 +258,6 @@ int main(void)
 
 	// LED Initialize
 	LED_SetScene(LrScene);
-	HAL_TIM_Base_Start(&htim1);
 
 	// Main loop
 	while (1) {
@@ -266,7 +265,6 @@ int main(void)
 			// USB device configured by host
 
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
-			HAL_TIM_Base_Start_IT(&htim1);		// Start Switch matrix timer.
 			SPEAKER_PlaySound(FREQ_C7, 500);
 			Start_All_Encoders();				// Start rotary encoder.
 
@@ -276,7 +274,7 @@ int main(void)
 			uint8_t color;
 			uint8_t ver_bits;
 			if (USBD_DEVICE_VER < 0x0100) {
-				color = LED_BLUE;
+				color = LED_GREEN;
 				ver_bits = (USBD_DEVICE_VER) & 0xFF;
 			}else{
 				color = LED_ORANGE;
@@ -284,7 +282,7 @@ int main(void)
 			}
 			for (uint8_t i = 0; i < LED_COUNT; i++) {
 				LEDColor[i] = (ver_bits & (1<<i)) ? color : LED_OFF;
-				LED_SetPulse(i,LEDColor[i], LED_PULSE_1S);
+				LED_SetPulse(i,LEDColor[i], LED_PULSE_2S);
 			}
 
 			LrState = LR_USB_LINKED;
@@ -296,7 +294,7 @@ int main(void)
 			Stop_All_Encoders();
 
 			HAL_TIM_Base_Stop(&htim1);
-			Matrix_Control(Lr_MATRIX_STOP);		// Stop L0-L3
+			Matrix_Control(Lr_MATRIX_STOP);		// Stop L0-L2
 
 			LED_TestPattern();
 			Msg_1st_timeout = false;
@@ -372,6 +370,15 @@ int main(void)
 			} else {
 				HAL_Delay(LED_TIM_RETRY_WAIT);	// i2c is busy, retry with interval
 			}
+			continue;
+		}
+		// OLED timer
+		if (Msg_Timer_Update == true) {	//32.7ms interval
+			if (Msg_Timer_Enable == true && (--Msg_Timer_Count) <= 0) {
+				Msg_Timer_Enable = false;
+				Msg_Off_Flag = true;
+			}
+			Msg_Timer_Update = false;
 			continue;
 		}
 

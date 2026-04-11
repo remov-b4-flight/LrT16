@@ -105,9 +105,9 @@ void EmulateMIDI() {
 		if ( MTX_Stat.ll != 0) { //Check Matrix switches/encoders
 			//Send 'Note On' message from switches/encoders matrix.
 			uint8_t	note;
-			if (MTX_Stat.mix.b0 == 1 && MTX_Stat.mix.b1 == 1) { // RESET command
+			if (MTX_Stat.mix.nm == 1 && MTX_Stat.mix.nm == 1) { // RESET command
 				HAL_NVIC_SystemReset();
-			}else if (MTX_Stat.mix.b0 == 1) {
+			}else if (MTX_Stat.mix.nm == 1) {
 				note = ((SCENE_COUNT + 1) * NOTES_PER_SCENE)+0; //is [SCENE] switch pressed?
 			   	//Move to next Scene.
 				if ( (++LrScene) >= SCENE_COUNT  ) {
@@ -118,7 +118,7 @@ void EmulateMIDI() {
 				}
 				LED_SetScene(LrScene);
 				isPrev_Scene = true;
-			}else if(MTX_Stat.mix.b1 == 1) {
+			}else if(MTX_Stat.mix.nm == 1) {
 				note = ((SCENE_COUNT + 1) * NOTES_PER_SCENE)+1;
 			} else {
 				note = (LrScene * NOTES_PER_SCENE) + bitpos;
@@ -187,9 +187,9 @@ rot_stopped_exits:
 	//Send MIDI message
 	if (isSendMIDIMessage == true) {
 		//Send MIDI message via USB.
-		if (USBD_LL_Transmit(pInstance, MIDI_IN_EP, (uint8_t *)&MIDI_TxMessage, MIDI_MESSAGE_LENGTH) == USBD_OK) {
-			isSendMIDIMessage = false;
-		}
+//		if (USBD_LL_Transmit(pInstance, MIDI_IN_EP, (uint8_t *)&MIDI_TxMessage, MIDI_MESSAGE_LENGTH) == USBD_OK) {
+//			isSendMIDIMessage = false;
+//		}
 	}
 	//Flash LED.
 	if (isLEDflash == true) {
