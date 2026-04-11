@@ -265,7 +265,7 @@ int main(void)
 			// USB device configured by host
 
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
-			SPEAKER_PlaySound(FREQ_C7, 500);
+			SPEAKER_PlaySound(FREQ_C7, SPEAKER_TIMER_0R5S);
 			Start_All_Encoders();				// Start rotary encoder.
 
 			// Connection banner
@@ -274,10 +274,18 @@ int main(void)
 			uint8_t color;
 			uint8_t ver_bits;
 			if (USBD_DEVICE_VER < 0x0100) {
+#ifdef DEBUG
+				color = LED_DARK;
+#else
 				color = LED_GREEN;
+#endif
 				ver_bits = (USBD_DEVICE_VER) & 0xFF;
 			}else{
+#ifdef DEBUG
+				color = LED_WHITE;
+#else
 				color = LED_ORANGE;
+#endif
 				ver_bits = (USBD_DEVICE_VER >> 4) & 0xFF;
 			}
 			for (uint8_t i = 0; i < LED_COUNT; i++) {

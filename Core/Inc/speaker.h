@@ -10,6 +10,9 @@
 #include <stdint.h>
 
 #define SPEAKER_TIMER_CONTINUOUS 0xff
+#define SPEAKER_TIMER_0R2S	8
+#define SPEAKER_TIMER_0R5S	21
+#define SPEAKER_TIMER_1S	42
 #define FREQ_2700HZ	370
 
 #define FREQ_C7		477
