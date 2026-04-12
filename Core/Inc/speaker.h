@@ -15,11 +15,12 @@
 #define SPEAKER_TIMER_1S	42
 #define FREQ_2700HZ	370
 
+#define FREQ_C6		954
 #define FREQ_C7		477
 #define FREQ_CS7	451
 #define FREQ_D7		425
 #define FREQ_DS7	401
-#define FREQE7		379
+#define FREQ_E7		379
 #define FREQ_F7		357
 #define FREQ_FS7	337
 #define FREQ_G7		318

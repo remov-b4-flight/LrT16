@@ -80,8 +80,6 @@ int32_t	Msg_Timer_Count;
 bool	Msg_Timer_Enable;
 //! If true, Screen is cleared in main() that is determined on timer interrupt.
 bool	Msg_Off_Flag;
-//! If true, Screen is flashed by [] at main() function.
-static	bool	isMsgFlash;
 //! If true, frame_buffer[] contents flashes the screen.
 static	bool	isRender;
 
@@ -143,12 +141,6 @@ void Start_MsgTimer(uint32_t tick){
 	Msg_Timer_Count = tick;
 	Msg_Timer_Enable = true;
 }
-/**
- * @brief	raise flag to message flash
- */
-inline void Msg_Print() {
-	isMsgFlash = true;
-}
 
 /**
  * @brief start/stop matrix L0-L3 control
@@ -160,8 +152,14 @@ static void Matrix_Control(uint8_t control) {
 	}
 
 	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, (control == Lr_MATRIX_START)? GPIO_PIN_SET : GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+	if (control == Lr_MATRIX_START) {
+		GPIOC->MODER &= 0xf7ffffff;	// set L0(PC13) for output
+		GPIOC->MODER |= 0x04000000;	// set L0(PC13) for output
+		HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
+	} else {
+		L0_GPIO_Port->MODER |= 0x03000000; // set L0(PC13) for analog in
+	}
+	GPIOC->MODER |= 0xf0000000; // set L2(PC15) and L1(PC14) for analog in
 	ENCSW_Line = L0;
 }
 /* USER CODE END 0 */
@@ -187,7 +185,7 @@ int main(void)
 	Msg_Off_Flag = false;
 	Msg_Timer_Enable = false;
 	Msg_Timer_Count = MSG_TIMER_DEFAULT;
-	isMsgFlash = false;
+//	isMsgFlash = false;
 	isRender = true;
 
 	LrState = LR_RESET;
@@ -220,10 +218,13 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	// Set all LEDs to 'OFF'
 	LED_Initialize();
+	//
+	SPEAKER_Initialize();
 	// Stop All Encoders until USB link up
 	Stop_All_Encoders();
 	//Initialize Switch matrix
-	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);	// Initialize L0-3.
+	Matrix_Control(Lr_MATRIX_STOP);		// Stop L0-L2
+//	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);	// Initialize L0-3.
 
 	// Initialize series of WS2812C
 	GPIOA->PUPDR |= GPIO_PUPDR_PUPDR6_0;	// Pull up PA6 (WS2812C-2020 workaround)
@@ -264,8 +265,7 @@ int main(void)
 		if (LrState == LR_USB_LINKUP) {
 			// USB device configured by host
 
-			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-3.
-			SPEAKER_PlaySound(FREQ_C7, SPEAKER_TIMER_0R5S);
+			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-2.
 			Start_All_Encoders();				// Start rotary encoder.
 
 			// Connection banner
@@ -315,9 +315,8 @@ int main(void)
 			if (Msg_Off_Flag == true) {
 				if (Msg_1st_timeout == true) {
 					LrState = LR_USB_LINK_LOST;
+					SPEAKER_PlaySound(FREQ_C6,SPEAKER_TIMER_0R2S);
 				} else { // 2nd or more
-
-					Msg_Print();
 
 					// Restart OLED timer.
 					Start_MsgTimer(MSG_TIMER_NOLINK);
@@ -339,12 +338,12 @@ int main(void)
 		} else if (LrState == LR_USB_DFU) {
 			if (Msg_Off_Flag == true) {
 				if (nc_count == 0) {
-					// Show DFU banner
-					//Msg_Print();
-//					SPEAKER_Playsound(FREQ_A7,1000);
+					// Pla DFU sound
+					SPEAKER_PlaySound(FREQ_C7,SPEAKER_TIMER_0R2S);
 					nc_count++;
 				} else if(nc_count == 1) {
 					// Show LED pattern
+					SPEAKER_PlaySound(FREQ_E7,SPEAKER_TIMER_0R2S);
 					LED_TestPattern();
 					nc_count++;
 				} else if (nc_count <= 2) {
@@ -381,7 +380,7 @@ int main(void)
 			continue;
 		}
 		// OLED timer
-		if (Msg_Timer_Update == true) {	//32.7ms interval
+		if (Msg_Timer_Update == true) {	//24ms interval
 			if (Msg_Timer_Enable == true && (--Msg_Timer_Count) <= 0) {
 				Msg_Timer_Enable = false;
 				Msg_Off_Flag = true;

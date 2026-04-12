@@ -97,7 +97,6 @@ void EmulateMIDI() {
 		if (isPrev_Scene == true) {
 			isPrev_Scene = false;
 		}
-		Msg_Print();
 		Start_MsgTimer(MSG_TIMER_DEFAULT);
 	} else if (isAnyMatrixPushed == true) {
 		bitpos = ntz16(MTX_Stat.mix.n2);
@@ -127,7 +126,6 @@ void EmulateMIDI() {
 			isSendMIDIMessage = true;
 
 			//Print Message to OLED & LED
-			Msg_Print();
 			Start_MsgTimer(MSG_TIMER_DEFAULT);
 
 			if (isSendMIDIMessage == true) {
@@ -176,8 +174,6 @@ void EmulateMIDI() {
 		isPrev_SwPush = false;
 
 		//Print Message to OLED & LEDs.
-		Msg_Print();
-
 		Start_MsgTimer(MSG_TIMER_DEFAULT);
 
 

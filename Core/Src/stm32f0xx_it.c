@@ -234,16 +234,21 @@ void TIM2_IRQHandler(void)
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.sh.n0 = (r);
 			ENCSW_Line++;
-			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
+//			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
+			L0_GPIO_Port->MODER |= 0x03000000; // set L0(PC13) for analog in
+//			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
+			L1_GPIO_Port->MODER &= 0xefffffff;	// set L1(PC14) for output
+			L1_GPIO_Port->MODER |= 0x20000000;	// set L1(PC14) for output
 			break;
 		case L1: // ENC 8-15
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.sh.n1 = (r);
 			ENCSW_Line++;
-			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
-
+//			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
+			L1_GPIO_Port->MODER |= 0x30000000; // set L1(PC14) for analog in
+//			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
+			L2_GPIO_Port->MODER &= 0x7fffffff;	// set L2(PC15) for output
+			L2_GPIO_Port->MODER |= 0x40000000;	// set L2(PC15) for output
 			if (previous_enc == current_enc.lo) { // Encoder signals are stable
 				current_move = current_enc.lo;
 				uint32_t enc_dif = previous_move ^ current_move;
@@ -284,8 +289,11 @@ void TIM2_IRQHandler(void)
 		case L2: /* ENC push SW 0-15*/
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.sh.n2 = (r);
-			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
+//			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+			L2_GPIO_Port->MODER |= 0xC0000000; // set L1(PC14) for analog in
+//			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
+			GPIOC->MODER &= 0xf7ffffff;	// set L0(PC13) for output
+			GPIOC->MODER |= 0x04000000;	// set L0(PC13) for output
 			ENCSW_Line = L0;
 			r = (SSW_GPIO_Port->IDR);
 			current_scan.sh.nm = (r);
