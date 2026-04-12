@@ -18,6 +18,8 @@ void SPEAKER_Initialize() {
 void SPEAKER_PlaySound(uint16_t freq, uint8_t duration){
 //	htim1.Init.Period = freq;
 	SPEAKER_Timer = duration;
+	htim1->Instance->ARR = freq;
+	htim1->Instance->CCR1 = (freq / 2);
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
 }
 

@@ -30,7 +30,7 @@
 #define FREQ_C8		238
 
 void SPEAKER_Initialize();
-void SPEAKER_PlaySound(uint16_t freq,uint16_t duration);
+void SPEAKER_PlaySound(uint16_t freq,uint8_t duration);
 void SPEAKER_Stop();
 
 #endif /* INC_SPEAKER_H_ */
