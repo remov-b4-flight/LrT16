@@ -73,13 +73,13 @@ uint8_t	LrScene;
 uint8_t	ENCSW_Line;
 // OLED variables
 //! Flag set by timer ISR, It makes 'off' OLES contents.
-bool 	Msg_Timer_Update;
+bool 	Long_Timer_Update;
 //! Timer counter ticked by TIM7.
-int32_t	Msg_Timer_Count;
+int32_t	Long_Timer_Count;
 //! If true Msg_Timer counting is enabled.
-bool	Msg_Timer_Enable;
+bool	Long_Timer_Enable;
 //! If true, Screen is cleared in main() that is determined on timer interrupt.
-bool	Msg_Off_Flag;
+bool	Long_Timer_flag;
 //! If true, frame_buffer[] contents flashes the screen.
 static	bool	isRender;
 
@@ -136,10 +136,10 @@ static inline void Start_All_Encoders() {
 /**
  * @brief Start OLED off timer
 */
-void Start_MsgTimer(uint32_t tick){
-	Msg_Off_Flag = false;
-	Msg_Timer_Count = tick;
-	Msg_Timer_Enable = true;
+void Start_LongTimer(uint32_t tick){
+	Long_Timer_flag = false;
+	Long_Timer_Count = tick;
+	Long_Timer_Enable = true;
 }
 
 /**
@@ -182,17 +182,16 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-	Msg_Off_Flag = false;
-	Msg_Timer_Enable = false;
-	Msg_Timer_Count = MSG_TIMER_DEFAULT;
-//	isMsgFlash = false;
+	Long_Timer_flag = false;
+	Long_Timer_Enable = false;
+	Long_Timer_Count = MSG_TIMER_DEFAULT;
 	isRender = true;
 
 	LrState = LR_RESET;
 	LrScene = Lr_SCENE0;
 
 	isLEDsendpulse = false;
-	Msg_Timer_Update = false;
+	Long_Timer_Update = false;
 	LED_Timer_Update = false;
 	isScene_Timeout = false;
   /* USER CODE END Init */
@@ -242,7 +241,7 @@ int main(void)
 	uint32_t	nc_count = 0;
 
 	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
-	Start_MsgTimer(MSG_TIMER_DEFAULT);
+	Start_LongTimer(MSG_TIMER_DEFAULT);
 
 	// Check SW17/PA9 and SW18/PA2 is pushed at Power On
 	uint16_t r = (~(GPIOA->IDR)) & BOOT_DFU_MASK;
@@ -269,7 +268,7 @@ int main(void)
 			Start_All_Encoders();				// Start rotary encoder.
 
 			// Connection banner
-			Start_MsgTimer(MSG_TIMER_CONNECT);
+			Start_LongTimer(MSG_TIMER_CONNECT);
 			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
 			uint8_t color;
 			uint8_t ver_bits;
@@ -306,20 +305,20 @@ int main(void)
 
 			LED_TestPattern();
 			Msg_1st_timeout = false;
-			Start_MsgTimer(MSG_TIMER_DEFAULT);
+			Start_LongTimer(MSG_TIMER_DEFAULT);
 			nc_count = 0;
 			LrState = LR_USB_NOLINK;
 
 		} else if (LrState == LR_USB_NOLINK) {
 			// USB can't be configured or disconnected by host.
-			if (Msg_Off_Flag == true) {
+			if (Long_Timer_flag == true) {
 				if (Msg_1st_timeout == true) {
 					LrState = LR_USB_LINK_LOST;
 					SPEAKER_PlaySound(FREQ_C6,SPEAKER_TIMER_0R2S);
 				} else { // 2nd or more
 
 					// Restart OLED timer.
-					Start_MsgTimer(MSG_TIMER_NOLINK);
+					Start_LongTimer(MSG_TIMER_NOLINK);
 
 					// Rotate LED colors
 					uint8_t	tempcolor = LEDColor[7];
@@ -334,9 +333,9 @@ int main(void)
 
 					isLEDsendpulse = true;
 				}
-			}// Msg_Off_Flag
+			}// Long_Timer_flag
 		} else if (LrState == LR_USB_DFU) {
-			if (Msg_Off_Flag == true) {
+			if (Long_Timer_flag == true) {
 				if (nc_count == 0) {
 					// Pla DFU sound
 					SPEAKER_PlaySound(FREQ_C7,SPEAKER_TIMER_0R2S);
@@ -351,7 +350,7 @@ int main(void)
 					// Jump to BOOTLOADER
 					Jump2SystemMemory();
 				}
-				Start_MsgTimer(MSG_TIMER_NOLINK/2);
+				Start_LongTimer(MSG_TIMER_NOLINK/2);
 			}
 
 		}// LrState
@@ -380,12 +379,12 @@ int main(void)
 			continue;
 		}
 		// OLED timer
-		if (Msg_Timer_Update == true) {	//24ms interval
-			if (Msg_Timer_Enable == true && (--Msg_Timer_Count) <= 0) {
-				Msg_Timer_Enable = false;
-				Msg_Off_Flag = true;
+		if (Long_Timer_Update == true) {	//24ms interval
+			if (Long_Timer_Enable == true && (--Long_Timer_Count) <= 0) {
+				Long_Timer_Enable = false;
+				Long_Timer_flag = true;
 			}
-			Msg_Timer_Update = false;
+			Long_Timer_Update = false;
 			continue;
 		}
 

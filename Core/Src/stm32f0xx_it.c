@@ -112,7 +112,7 @@ extern MTX_SCAN	MTX_Stat;
 extern ENC_SCAN	ENC_Stat;
 extern char		*Msg_Buffer[];
 extern bool		LED_Timer_Update;
-extern bool		Msg_Timer_Update;
+extern bool		Long_Timer_Update;
 extern ENC_MOVE	enc_move;
 extern bool		isScene_Timeout;
 extern uint8_t	LrScene;
@@ -352,7 +352,7 @@ void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
   LED_Timer_Update = true;
-  Msg_Timer_Update = true;
+  Long_Timer_Update = true;
   /* USER CODE END TIM6_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */

@@ -97,7 +97,7 @@ void EmulateMIDI() {
 		if (isPrev_Scene == true) {
 			isPrev_Scene = false;
 		}
-		Start_MsgTimer(MSG_TIMER_DEFAULT);
+		Start_LongTimer(MSG_TIMER_DEFAULT);
 	} else if (isAnyMatrixPushed == true) {
 		bitpos = ntz16(MTX_Stat.mix.n2);
 
@@ -126,7 +126,7 @@ void EmulateMIDI() {
 			isSendMIDIMessage = true;
 
 			//Print Message to OLED & LED
-			Start_MsgTimer(MSG_TIMER_DEFAULT);
+			Start_LongTimer(MSG_TIMER_DEFAULT);
 
 			if (isSendMIDIMessage == true) {
 				//Set 'Note On' message
@@ -174,7 +174,7 @@ void EmulateMIDI() {
 		isPrev_SwPush = false;
 
 		//Print Message to OLED & LEDs.
-		Start_MsgTimer(MSG_TIMER_DEFAULT);
+		Start_LongTimer(MSG_TIMER_DEFAULT);
 
 
 rot_stopped_exits:
