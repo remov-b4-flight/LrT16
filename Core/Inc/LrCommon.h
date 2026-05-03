@@ -16,7 +16,7 @@
 
 //! Type for Encoders
 typedef union enc_scan_t {
-    uint32_t lo;
+    uint32_t u32;
     struct enc_bits_t {
 		uint8_t enc0:2;	//! < Rotary encoder0
 		uint8_t enc1:2;	//! < Rotary encoder1
@@ -37,20 +37,40 @@ typedef union enc_scan_t {
     } nb;
 } ENC_SCAN;
 
-//! Type for switch matrix
+typedef union sw_push_t {
+	uint16_t	u16;
+	struct sw_push_bits_t {
+		uint16_t sw17:1;	//! < SW17 single push (function)
+		uint16_t sw18:1;	//! < SW18 single push (scene)
+		uint16_t sw17lp:1;	//! < SW17 long push
+		uint16_t sw18lp:1;	//! < SW18 long push
+		uint16_t sw17dp:1;	//! < SW17 double push
+		uint16_t sw18dp:1;	//! < SW18 double push
+		uint16_t sw17sp:1;
+		uint16_t dummy:9;	//! < dummy bits
+	} bits;
+} SW_PUSH;
+
+typedef union sw_scan_t {
+	uint32_t	u32;
+	struct sw_hw_t{
+		uint16_t 	enc_sw;
+		SW_PUSH		side_sw;
+	} u16;
+} SW_SCAN;
+
+//! Type for switch/encoder matrix
 typedef union mtrx_scan_t {
-    uint64_t ll;
+    uint64_t u64;
     struct scan_entry_t {
 		uint16_t n0;	//! < Switch Line0
 		uint16_t n1;	//! < Switch Line1
-		uint16_t n2;	//! < Switch Line2
-		uint16_t nm;
-    } sh;
+		SW_SCAN	n2;		//! < Switch Line2 and non-matrix
+    } line;
     struct analyze_t {
-    	ENC_SCAN n01;	// 32bi;t
-    	uint16_t n2;
-    	uint16_t nm;
-    } mix;
+    	ENC_SCAN n01;	//! 32bit
+		SW_SCAN	n2;		//! < Switch Line2 and non-matrix
+    } enc;
 } MTX_SCAN;
 
 //! Encoder movement expression
@@ -102,19 +122,26 @@ enum lr_enc_t {
 
 //! Scene definition in MIDI
 enum lr_scene_t {
-	Lr_SCENE0 = 0,
+	Lr_SCENE0 = 0,	// used for function/scene (SW17-18) operation and not assigned to MIDI scene.
 	Lr_SCENE1 = 1,
 	Lr_SCENE2 = 2,
 	Lr_SCENE3 = 3,
+	Lr_SCENE4 = 4,
+	Lr_SCENE5 = 5,
+	Lr_SCENE6 = 6,
+	Lr_SCENE7 = 7,
 };
 //! Key matrix states
 enum lr_matrix_t {
 	Lr_MATRIX_STOP = 0,
 	Lr_MATRIX_START = 1,
 };
+//!
+#define SCENE_COUNT_MAX	8
 //! number of scenes (avail. range:1~7)
 //! @note need to match ((SCENE_COUNT+1) * ENC_COUNT) < 127
-#define SCENE_COUNT		4
+#define SCENE_COUNT		3
+#define Lr_SCENE_MAX	SCENE_COUNT
 //! Assigned notes per scene.
 #define NOTES_PER_SCENE	16
 //! Scene timeout (1 hour)
@@ -123,9 +150,6 @@ enum lr_matrix_t {
 #else
 #define SCENE_TIMEOUT (1200*1000*1000 / (TIM_PERIOD_MATRIX + 1))
 #endif
-//!CC channel offset for Scene0-ENC0
-#define CC_CH_OFFSET	0
-#define NOTE_OFFSET		0 //(CC_CH_OFFSET - 8)
 //!Assigned CC channel count per scene
 #define CC_CH_PER_SCENE	16
 #define CH_SCENE_MASK	(CC_CH_PER_SCENE - 1)
@@ -141,5 +165,8 @@ enum lr_matrix_t {
 #define MSG_TIMER_DEFAULT	62		//1.5Sec (1 tick=24ms)
 #define MSG_TIMER_NOLINK	42		//1Sec (OLED update in USB not connected)
 #define MSG_TIMER_CONNECT	167		//4Sec (USB connected)
+
+//! LP(long_press) timer def.
+#define LP_TIM_NORM	12
 
 #endif /* INC_LRCOMMON_H_ */

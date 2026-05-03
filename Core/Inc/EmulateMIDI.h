@@ -18,10 +18,14 @@
 #define RESET_SW_PATTERN	0x3	// in cc_bits.mix.b [Undo]+[Scene]
 #define	SCENE_MSK	0x3
 
+#define NOTE_FUNC_SW	0x1		// single push Func.SW SW17
+#define NOTE_SCENE_SW	0x2		// single push SW18
+#define NOTE_FUNC_LP	0x3		// long push for Func.SW (SW17)
+
 //! @defgroup number of cc channels that LrTMAX controls.
 #define CC_COUNT_INUSE	(ENC_COUNT * SCENE_COUNT)
-#define CC_MAX_INUSE	(CC_CH_OFFSET + CC_COUNT_INUSE)
-#define CC_MIN_INUSE	CC_CH_OFFSET
+#define CC_MAX_INUSE	CC_COUNT_INUSE
+#define CC_MIN_INUSE	0
 
 //! Received from MIDI channel-value pair
 typedef union ch_val_t {

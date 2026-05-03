@@ -72,9 +72,7 @@ uint8_t	LrScene;
 //! In key scanning whether Line selected to read for key matrix.
 uint8_t	ENCSW_Line;
 // OLED variables
-//! Flag set by timer ISR, It makes 'off' OLES contents.
-bool 	Long_Timer_Update;
-//! Timer counter ticked by TIM7.
+//! Timer counter ticked by TIM6.
 int32_t	Long_Timer_Count;
 //! If true Msg_Timer counting is enabled.
 bool	Long_Timer_Enable;
@@ -92,12 +90,16 @@ bool	LED_Timer_Update;
 //! Scene time out
 bool	isScene_Timeout;
 //! LED patterns that set by switching scenes.
-const uint8_t LED_Scene[SCENE_COUNT][LED_COUNT] = {
+const uint8_t LED_Scene[SCENE_COUNT_MAX][LED_COUNT] = {
 	//0			1			2			3			4			5			6			7
-	{LED_BLUE,	LED_BLUE,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene0
+	{LED_BLUE,	LED_BLUE,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene0(un-used)
 	{LED_RED,	LED_BLUE,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene1
 	{LED_BLUE,	LED_RED,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene2
 	{LED_RED,	LED_RED,	LED_BLUE,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF },	//Scene3
+	{LED_BLUE,	LED_BLUE,	LED_RED,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene4
+	{LED_RED,	LED_BLUE,	LED_RED,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF	},	//Scene5
+	{LED_BLUE,	LED_RED,	LED_RED,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF },	//Scene6
+	{LED_RED,	LED_RED,	LED_RED,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF },	//Scene7
 };
 
 /* USER CODE END PV */
@@ -188,10 +190,9 @@ int main(void)
 	isRender = true;
 
 	LrState = LR_RESET;
-	LrScene = Lr_SCENE0;
+	LrScene = Lr_SCENE1;
 
 	isLEDsendpulse = false;
-	Long_Timer_Update = false;
 	LED_Timer_Update = false;
 	isScene_Timeout = false;
   /* USER CODE END Init */
@@ -238,7 +239,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	uint32_t	nc_count = 0;
+	uint8_t	nc_count = 0;
 
 	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
 	Start_LongTimer(MSG_TIMER_DEFAULT);
@@ -355,16 +356,24 @@ int main(void)
 
 		}// LrState
 
-		// LED Timer
+		// Software Timers
 		if (LED_Timer_Update == true) { // 24ms interval
+			// LED Timer
 			for (uint8_t i = 0; i < LED_COUNT; i++) {
 				if (LEDTimer[i] != LED_TIMER_CONSTANT && --LEDTimer[i] == 0) {
 					LED_SetPulse(i, LED_Scene[LrScene][i], LED_TIMER_CONSTANT);
 				}
 			}
+			// Speaker Timer
 			if (SPEAKER_Timer != SPEAKER_TIMER_CONTINUOUS && --SPEAKER_Timer == 0) {
 				SPEAKER_Stop();
 			}
+			// Long Timer
+			if (Long_Timer_Enable == true && (--Long_Timer_Count) <= 0) {
+				Long_Timer_Enable = false;
+				Long_Timer_flag = true;
+			}
+
 			LED_Timer_Update = false;
 			continue;
 		}
@@ -376,15 +385,6 @@ int main(void)
 			} else {
 				HAL_Delay(LED_TIM_RETRY_WAIT);	// i2c is busy, retry with interval
 			}
-			continue;
-		}
-		// OLED timer
-		if (Long_Timer_Update == true) {	//24ms interval
-			if (Long_Timer_Enable == true && (--Long_Timer_Count) <= 0) {
-				Long_Timer_Enable = false;
-				Long_Timer_flag = true;
-			}
-			Long_Timer_Update = false;
 			continue;
 		}
 
@@ -731,7 +731,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SW2_Pin SW_Pin */
-  GPIO_InitStruct.Pin = SW2_Pin|SW_Pin;
+  GPIO_InitStruct.Pin = SW17_Pin|SW18_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);

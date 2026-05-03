@@ -11,6 +11,7 @@
 extern	uint8_t	LrScene;
 extern	USBD_HandleTypeDef *pInstance;
 extern	bool isScene_Timeout;
+extern	bool LED_Timer_Update;
 //! keeps previous 'Note On' note number For sending 'Note Off' message.
 uint8_t	prev_note;
 //! If true, MIDI message previous sent is switch. If false, it's encoder
@@ -26,7 +27,7 @@ QUEUE	midi_rx_que;
 
 // keyboard variable
 //! If true, ISR detected any Switch was pushed.
-bool	isAnyMatrixPushed;
+bool	isAnySwitchPushed;
 //! If true ISR detected any Encoder was moved.
 bool	isAnyEncoderMoved;
 //! Switch pressed status set by timer scanning.
@@ -37,6 +38,9 @@ ENC_SCAN	ENC_Stat;
 MIDI_MSG	MIDI_TxMessage;
 //! Encoder move information
 ENC_MOVE	enc_move;
+//! LP(Long Press) timer
+int8_t		LP_Timer;
+bool		LP_Timer_Enable;
 
 /**
  * @brief	Rise CC message value
@@ -68,6 +72,8 @@ static bool MIDI_CC_Dec(uint8_t channel) {
  * 	@brief	Initialize MIDI value memory, queue.
  */
 void EmulateMIDI_Init() {
+	LP_Timer = LP_TIM_NORM;
+	LP_Timer_Enable = false;
 	isPrev_SwPush = false;
 	isPrev_Scene = false;
 	memset(MIDI_CC_Value, MIDI_CC_INITIAL, CC_CH_COUNT);
@@ -76,7 +82,7 @@ void EmulateMIDI_Init() {
 
 /**
  *	@brief	Generate MIDI message and Send to host by User interaction.
- *	@pre	isAnyMatrixPushed 	any Switches was pressed or not
+ *	@pre	isAnySwitchPushed 	any Switches was pressed or not
  *	@pre	isAnyEncodersMoved 	any Encoders was moved or not
  *	@pre	ENCSW_Stat	current Switches/Encoders status
  */
@@ -89,7 +95,7 @@ void EmulateMIDI() {
 		uint8_t cc_scene = 0;
 		do {
 			rx.wd = queue_dequeue(&midi_rx_que);
-			cc_scene = ((rx.by.ch - CC_CH_OFFSET) / CC_CH_PER_SCENE) & CH_SCENE_MASK;
+			cc_scene = (rx.by.ch / CC_CH_PER_SCENE) & CH_SCENE_MASK;
 			if ( CC_MIN_INUSE <= rx.by.ch && rx.by.ch < CC_MAX_INUSE ) {
 				MIDI_CC_Value[rx.by.ch] = rx.by.val;
 			}
@@ -98,32 +104,46 @@ void EmulateMIDI() {
 			isPrev_Scene = false;
 		}
 		Start_LongTimer(MSG_TIMER_DEFAULT);
-	} else if (isAnyMatrixPushed == true) {
-		bitpos = ntz16(MTX_Stat.mix.n2);
+	} else if (isAnySwitchPushed == true) {
+		bitpos = ntz16(MTX_Stat.line.n2.u16.side_sw.u16);
 
-		if ( MTX_Stat.ll != 0) { //Check Matrix switches/encoders
+		if ( MTX_Stat.u64 != 0) { //Check Matrix switches/encoders
 			//Send 'Note On' message from switches/encoders matrix.
 			uint8_t	note;
-			if (MTX_Stat.mix.nm == 1 && MTX_Stat.mix.nm == 1) { // RESET command
+			if (MTX_Stat.line.n2.u16.side_sw.bits.sw17 == 1
+					&& MTX_Stat.line.n2.u16.side_sw.bits.sw18 == 1) { // RESET command
 				HAL_NVIC_SystemReset();
-			}else if (MTX_Stat.mix.nm == 1) {
-				note = ((SCENE_COUNT + 1) * NOTES_PER_SCENE)+0; //is [SCENE] switch pressed?
+			}else if (MTX_Stat.line.n2.u16.side_sw.bits.sw18 == 1) {
+				note = NOTE_SCENE_SW; //is [SCENE] switch pressed?
 			   	//Move to next Scene.
-				if ( (++LrScene) >= SCENE_COUNT  ) {
-					LrScene = Lr_SCENE0;
+				if ( (++LrScene) > SCENE_COUNT  ) {
+					LrScene = Lr_SCENE1;
 				} else if ( isScene_Timeout == true ) {
-					LrScene = Lr_SCENE0;
+					LrScene = Lr_SCENE1;
 					isScene_Timeout = false;
 				}
 				LED_SetScene(LrScene);
 				isPrev_Scene = true;
-			}else if(MTX_Stat.mix.nm == 1) {
-				note = ((SCENE_COUNT + 1) * NOTES_PER_SCENE)+1;
+
+				isSendMIDIMessage = true;
+			}else if(MTX_Stat.line.n2.u16.side_sw.bits.sw17 == 1) {
+				//note = NOTE_FUNC_SW;
+				LP_Timer = LP_TIM_NORM;		//process long push
+				LP_Timer_Enable = true;
+			}else if(MTX_Stat.line.n2.u16.side_sw.bits.sw17lp == 1) {
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 0;
+				note = NOTE_FUNC_LP;
+				isSendMIDIMessage = true;
+			}else if(MTX_Stat.line.n2.u16.side_sw.bits.sw17sp == 1) {
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 0;
+				note = NOTE_FUNC_SW;
+				isSendMIDIMessage = true;
 			} else {
 				note = (LrScene * NOTES_PER_SCENE) + bitpos;
-				//				LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
+				//	LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
+
+				isSendMIDIMessage = true;
 			}
-			isSendMIDIMessage = true;
 
 			//Print Message to OLED & LED
 			Start_LongTimer(MSG_TIMER_DEFAULT);
@@ -149,10 +169,10 @@ void EmulateMIDI() {
 			isSendMIDIMessage = true;
 			isPrev_SwPush = false;
 		}
-		isAnyMatrixPushed = false;
+		isAnySwitchPushed = false;
 	} else if ( isAnyEncoderMoved == true) { //check encoder movements
 		uint8_t	axis = enc_move.bits.axis;
-		uint8_t channel = CC_CH_OFFSET + (LrScene * CC_CH_PER_SCENE) + axis;
+		uint8_t channel = (LrScene * CC_CH_PER_SCENE) + axis;
 
 		bitpos = PROF_ENC1ST + (axis * 2);
 
@@ -183,10 +203,22 @@ rot_stopped_exits:
 	//Send MIDI message
 	if (isSendMIDIMessage == true) {
 		//Send MIDI message via USB.
-//		if (USBD_LL_Transmit(pInstance, MIDI_IN_EP, (uint8_t *)&MIDI_TxMessage, MIDI_MESSAGE_LENGTH) == USBD_OK) {
-//			isSendMIDIMessage = false;
-//		}
+		if (USBD_LL_Transmit(pInstance, MIDI_IN_EP, (uint8_t *)&MIDI_TxMessage, MIDI_MESSAGE_LENGTH) == USBD_OK) {
+			isSendMIDIMessage = false;
+		}
 	}
+
+	if (LED_Timer_Update == true) { // 24ms interval
+		if (LP_Timer_Enable == true && (--LP_Timer) == 0){
+			if ((SSW_GPIO_Port->IDR & SW17_Pin) == 0){	// pin still pushed
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 1;
+			} else { // already released
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 1;
+			}
+			LP_Timer_Enable = false;
+		}
+	}
+
 	//Flash LED.
 	if (isLEDflash == true) {
 //		LED_SetPulse(prof_table[LrScene][bitpos].axis,

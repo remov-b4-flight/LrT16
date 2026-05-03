@@ -82,7 +82,7 @@ void Msg_Print();
 #define L1_GPIO_Port GPIOC
 #define L2_Pin GPIO_PIN_15
 #define L2_GPIO_Port GPIOC
-#define SW2_Pin GPIO_PIN_2
+#define SW18_Pin GPIO_PIN_2
 #define SW2_GPIO_Port GPIOA
 #define LED_DON_Pin GPIO_PIN_6
 #define LED_DON_GPIO_Port GPIOA
@@ -106,7 +106,7 @@ void Msg_Print();
 #define M15_GPIO_Port GPIOB
 #define SP_Pin GPIO_PIN_8
 #define SP_GPIO_Port GPIOA
-#define SW_Pin GPIO_PIN_10
+#define SW17_Pin GPIO_PIN_10
 #define SW_GPIO_Port GPIOA
 #define USB_DM_Pin GPIO_PIN_11
 #define USB_DM_GPIO_Port GPIOA

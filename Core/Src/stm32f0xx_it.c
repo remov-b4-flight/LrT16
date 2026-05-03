@@ -65,7 +65,7 @@ uint16_t previous_push;
 //! Value of scanned from key matrix.
 MTX_SCAN current_scan;
 //! Previous scanned bits
-uint32_t previous_mtrx;
+uint32_t previous_sw;
 //! Previous encoder state array
 uint8_t	enc_prev[ENC_COUNT];
 //! CUrrent encoder state array
@@ -93,9 +93,9 @@ uint8_t dechatter_timer;
 //! De-chatter timer counter
 uint8_t dechatter_rate;
 //
-uint16_t prev_nm;
-uint16_t current_nm;
-uint16_t prev_nm_push;
+uint16_t prev_sidesw;
+SW_SCAN	current_sidesw;
+uint16_t prev_sidesw_push;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -106,13 +106,12 @@ extern TIM_HandleTypeDef htim6;
 /* USER CODE BEGIN EV */
 extern TIM_HandleTypeDef htim3;
 extern uint8_t	ENCSW_Line;
-extern bool		isAnyMatrixPushed;
+extern bool		isAnySwitchPushed;
 extern bool		isAnyEncoderMoved;
 extern MTX_SCAN	MTX_Stat;
 extern ENC_SCAN	ENC_Stat;
 extern char		*Msg_Buffer[];
 extern bool		LED_Timer_Update;
-extern bool		Long_Timer_Update;
 extern ENC_MOVE	enc_move;
 extern bool		isScene_Timeout;
 extern uint8_t	LrScene;
@@ -232,7 +231,7 @@ void TIM2_IRQHandler(void)
 	switch(ENCSW_Line) {
 		case L0: // ENC0~7
 			r = (Mx_GPIO_Port->IDR);
-			current_scan.sh.n0 = (r);
+			current_scan.line.n0 = (r);
 			ENCSW_Line++;
 //			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
 			L0_GPIO_Port->MODER |= 0x03000000; // set L0(PC13) for analog in
@@ -242,15 +241,15 @@ void TIM2_IRQHandler(void)
 			break;
 		case L1: // ENC 8-15
 			r = (Mx_GPIO_Port->IDR);
-			current_scan.sh.n1 = (r);
+			current_scan.line.n1 = (r);
 			ENCSW_Line++;
 //			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
 			L1_GPIO_Port->MODER |= 0x30000000; // set L1(PC14) for analog in
 //			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
 			L2_GPIO_Port->MODER &= 0x7fffffff;	// set L2(PC15) for output
 			L2_GPIO_Port->MODER |= 0x40000000;	// set L2(PC15) for output
-			if (previous_enc == current_enc.lo) { // Encoder signals are stable
-				current_move = current_enc.lo;
+			if (previous_enc == current_enc.u32) { // Encoder signals are stable
+				current_move = current_enc.u32;
 				uint32_t enc_dif = previous_move ^ current_move;
 				if (enc_dif != 0) { // If any encoder has moved.
 					previous_move = current_move;
@@ -279,48 +278,52 @@ void TIM2_IRQHandler(void)
 					dechatter_rate = DECHATTER_MAX;
 				}
 			} else {
-				previous_enc = current_enc.lo;
+				previous_enc = current_enc.u32;
 			}
 			if (dechatter_timer < dechatter_rate) {
 				dechatter_timer++;
 			}
 
 			break;
-		case L2: /* ENC push SW 0-15*/
+		case L2: /* ENC push SW1-16,SW17,SW18*/
 			r = (Mx_GPIO_Port->IDR);
-			current_scan.sh.n2 = (r);
+			current_scan.line.n2.u16.enc_sw = (r);
 //			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
 			L2_GPIO_Port->MODER |= 0xC0000000; // set L1(PC14) for analog in
 //			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
 			GPIOC->MODER &= 0xf7ffffff;	// set L0(PC13) for output
 			GPIOC->MODER |= 0x04000000;	// set L0(PC13) for output
 			ENCSW_Line = L0;
-			r = (SSW_GPIO_Port->IDR);
-			current_scan.sh.nm = (r);
+			r = (SSW_GPIO_Port->IDR);	//Get side switches
+			current_scan.line.n2.u16.side_sw.bits.sw17 = (r & SW17_Pin)? 0:1;
+			current_scan.line.n2.u16.side_sw.bits.sw18 = (r & SW18_Pin)? 0:1;
 
-			//Switch detection
-			if (previous_mtrx == current_scan.mix.n2){
-				current_push = current_scan.mix.n2;
+			//Encoder Switch detection
+			if (previous_sw == current_scan.line.n2.u16.enc_sw) { //chatter canceler
+				current_push = current_scan.line.n2.u16.enc_sw;
 				uint16_t sw_dif = current_push ^ previous_push;
-				MTX_Stat.mix.n2 = current_push;
+				MTX_Stat.line.n2.u16.enc_sw = current_push;
 				if (sw_dif != 0) {
 					previous_push = current_push;
-					isAnyMatrixPushed = true;
+					isAnySwitchPushed = true;
 					scene_timer = 0;
 				}
 			}
-			previous_mtrx = current_scan.mix.n2;
+			previous_sw = current_scan.line.n2.u16.enc_sw;
 
-			if (prev_nm == current_scan.sh.nm){
-				current_nm = current_scan.sh.nm;
-				uint16_t nm_dif = current_nm ^ prev_nm_push;
-				MTX_Stat.mix.nm = current_nm;
-				if(nm_dif != 0) {
-					prev_nm_push = current_nm;
-					isAnyMatrixPushed = true;
+			// Side Switch detection
+			if (prev_sidesw == current_scan.line.n2.u16.side_sw.u16) {
+				current_sidesw.u16.side_sw.bits.sw17 = current_scan.line.n2.u16.side_sw.bits.sw17;
+				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
+				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push;
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
+				MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
+				if(sidesw_dif != 0) {
+					prev_sidesw_push = current_sidesw.u16.side_sw.u16;
+					isAnySwitchPushed = true;
 				}
 			}
-			prev_nm = current_scan.mix.nm;
+			prev_sidesw = current_scan.line.n2.u16.side_sw.u16;
 
 			break;
 	}
@@ -329,11 +332,11 @@ void TIM2_IRQHandler(void)
 		scene_timer = 0;
 #ifndef NO_SCENE_TO
 		// do scene switching to Lr_SCENE0 as scene switch is pushed
-		if (LrScene != Lr_SCENE0) {
+		if (LrScene != Lr_SCENE1) {
 			isScene_Timeout = true;
-			MTX_Stat.sh.nm = 1;
-			isAnyMatrixPushed = true;
-			LrScene = Lr_SCENE3;
+			MTX_Stat.line.n2.u16.side_sw.bits.sw18 = 1;
+			isAnySwitchPushed = true;
+			LrScene = Lr_SCENE_MAX;
 #endif
 		}
 	}
@@ -352,7 +355,6 @@ void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
   LED_Timer_Update = true;
-  Long_Timer_Update = true;
   /* USER CODE END TIM6_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
@@ -398,7 +400,7 @@ void ENC_Init() {
 	enc_prev[Lr_ENC14] = current_enc.nb.enc14 = v;
 	enc_prev[Lr_ENC15] = current_enc.nb.enc15 = v;
 
-	previous_move = previous_enc = current_enc.lo;
+	previous_move = previous_enc = current_enc.u32;
 	scene_timer = 0;
 	dechatter_timer = 0;
 	dechatter_rate = DECHATTER_MAX;
@@ -407,7 +409,7 @@ void ENC_Init() {
  * @brief	Initialize Matrix related variables.
  */
 void MTRX_Init() {
-	previous_mtrx = 0;
+	previous_sw = 0;
 	previous_push = 0;
 	current_push = 0;
 }
