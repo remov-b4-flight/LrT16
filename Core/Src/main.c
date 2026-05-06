@@ -193,7 +193,7 @@ int main(void)
 	LrScene = Lr_SCENE1;
 
 	isLEDsendpulse = false;
-	LED_Timer_Update = false;
+	Soft_Timer_Update = false;
 	isScene_Timeout = false;
   /* USER CODE END Init */
 
@@ -357,7 +357,7 @@ int main(void)
 		}// LrState
 
 		// Software Timers
-		if (LED_Timer_Update == true) { // 24ms interval
+		if (Soft_Timer_Update == true) { // 24ms interval
 			// LED Timer
 			for (uint8_t i = 0; i < LED_COUNT; i++) {
 				if (LEDTimer[i] != LED_TIMER_CONSTANT && --LEDTimer[i] == 0) {
@@ -374,7 +374,7 @@ int main(void)
 				Long_Timer_flag = true;
 			}
 
-			LED_Timer_Update = false;
+			Soft_Timer_Update = false;
 			continue;
 		}
 

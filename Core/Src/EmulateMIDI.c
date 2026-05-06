@@ -11,7 +11,7 @@
 extern	uint8_t	LrScene;
 extern	USBD_HandleTypeDef *pInstance;
 extern	bool isScene_Timeout;
-extern	bool LED_Timer_Update;
+extern	bool Soft_Timer_Update;
 extern	SW_SCAN prev_sidesw_push;
 //! keeps previous 'Note On' note number For sending 'Note Off' message.
 uint8_t	prev_note;
@@ -211,7 +211,7 @@ rot_stopped_exits:
 		}
 	}
 
-	if (LED_Timer_Update == true) { // 24ms interval
+	if (Soft_Timer_Update == true) { // 24ms interval
 		if (LP_Timer_Enable == true && (--LP_Timer) == 0){
 			if ((SSW_GPIO_Port->IDR & SW17_Pin) == 0){	// pin still pushed
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 1;
