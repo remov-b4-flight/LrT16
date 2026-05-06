@@ -95,7 +95,7 @@ uint8_t dechatter_rate;
 //
 uint16_t prev_sidesw;
 SW_SCAN	current_sidesw;
-uint16_t prev_sidesw_push;
+SW_SCAN prev_sidesw_push;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -315,11 +315,11 @@ void TIM2_IRQHandler(void)
 			if (prev_sidesw == current_scan.line.n2.u16.side_sw.u16) {
 				current_sidesw.u16.side_sw.bits.sw17 = current_scan.line.n2.u16.side_sw.bits.sw17;
 				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
-				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push;
+				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push.u16.side_sw.u16;
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
 				MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
 				if(sidesw_dif != 0) {
-					prev_sidesw_push = current_sidesw.u16.side_sw.u16;
+					prev_sidesw_push.u16.side_sw.u16 = current_sidesw.u16.side_sw.u16;
 					isAnySwitchPushed = true;
 				}
 			}
