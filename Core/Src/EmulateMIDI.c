@@ -212,13 +212,21 @@ rot_stopped_exits:
 	}
 
 	if (Soft_Timer_Update == true) { // 24ms interval
-		if (LP_Timer_Enable == true && (--LP_Timer) == 0){
-			if ((SSW_GPIO_Port->IDR & SW17_Pin) == 0){	// pin still pushed
-				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 1;
-			} else { // already released
+		if (LP_Timer_Enable == true) {
+			// shortcut for sw17 release under LPTimer running
+			if ((SSW_GPIO_Port->IDR & SW17_Pin)? true:false ) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 1;
+				LP_Timer_Enable = false;
+				TP_Timer = 0;
 			}
-			LP_Timer_Enable = false;
+			if ((--LP_Timer) == 0) { // check for Timer is up
+				if ((SSW_GPIO_Port->IDR & SW17_Pin) == GPIO_SW_PUSHED){	// pin still pushed
+					MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 1;
+				} else { // already released
+					MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 1;
+				}
+				LP_Timer_Enable = false;
+			}
 		}
 	}
 

@@ -42,7 +42,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-//! Build option if you need not use scene timeouts, uncomment this.
+//! Build option if you need not use scene timeouts, un-comment this.
 //#define NO_SCENE_TO	1
 /* USER CODE END EC */
 
