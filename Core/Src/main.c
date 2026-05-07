@@ -85,7 +85,7 @@ static	bool	isRender;
 //! If true, LEDs are flashed by LEDColor[] array.
 bool	isLEDsendpulse;
 //! Flag is set by timer ISR, It makes LED_Timer[] count up in main()
-bool	LED_Timer_Update;
+bool	Soft_Timer_Update;
 
 //! Scene time out
 bool	isScene_Timeout;

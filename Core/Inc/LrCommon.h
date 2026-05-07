@@ -40,14 +40,15 @@ typedef union enc_scan_t {
 typedef union sw_push_t {
 	uint16_t	u16;
 	struct sw_push_bits_t {
-		uint16_t sw17:1;	//! < SW17 single push (function)
-		uint16_t sw18:1;	//! < SW18 single push (scene)
-		uint16_t sw17lp:1;	//! < SW17 long push
-		uint16_t sw18lp:1;	//! < SW18 long push
-		uint16_t sw17dp:1;	//! < SW17 double push
-		uint16_t sw18dp:1;	//! < SW18 double push
-		uint16_t sw17sp:1;
-		uint16_t dummy:9;	//! < dummy bits
+		uint16_t	sw17:1;	//! < SW17 single push (function)
+		uint16_t	sw18:1;	//! < SW18 single push (scene)
+		uint16_t	sw17lp:1;	//! < SW17 long push (virtual)
+		uint16_t	sw18lp:1;	//! < SW18 long push (virtual)
+		uint16_t	sw17dp:1;	//! < SW17 double push
+		uint16_t	sw18dp:1;	//! < SW18 double push
+		uint16_t	sw17sp:1;	//! < SW17 single push (virtual)
+		uint16_t	sw18sp:1;	//! < SW18 single push (virtual)
+		uint8_t		dummy;		//! < dummy bits
 	} bits;
 } SW_PUSH;
 
