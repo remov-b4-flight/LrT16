@@ -217,7 +217,7 @@ rot_stopped_exits:
 			if ((SSW_GPIO_Port->IDR & SW17_Pin)? true:false ) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 1;
 				LP_Timer_Enable = false;
-				TP_Timer = 0;
+				LP_Timer = 0;
 			}
 			if ((--LP_Timer) == 0) { // check for Timer is up
 				if ((SSW_GPIO_Port->IDR & SW17_Pin) == GPIO_SW_PUSHED){	// pin still pushed

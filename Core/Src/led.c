@@ -96,6 +96,28 @@ void LED_TestPattern() {
 }
 
 /**
+ * @brief	Set LEDs by value.
+ * @param	value
+ * @param	color0
+ * @param	color1
+ * @param	length
+ * @aram	pulse
+ */
+void LED_SetValue(uint8_t value, uint8_t color0, uint8_t color1, uint8_t length, uint8_t pulse) {
+	uint8_t	n = value;
+	for (uint8_t i=0; i < sizeof(value); i++ ){
+		if (i > length) {
+			LEDColor[i] = LED_OFF;
+		}else{
+			LEDColor[i] = (n & 1)? color1:color0;
+		}
+		n >>= 1;
+		LEDTimer[i] = pulse;
+	}
+	isLEDsendpulse = true;
+}
+
+/**
  *	@brief	Make LED flashing by setting LEDTimer[]
  *	@param	index	index of LEDs.
  *	@param	color	color of LED.
