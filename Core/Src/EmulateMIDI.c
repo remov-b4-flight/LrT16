@@ -234,8 +234,19 @@ rot_stopped_exits:
 
 	// Flash LED.
 	if (isLEDflash == true) {
-		uint8_t value = (MIDI_TxMessage.header == MIDI_NT_ON)? MIDI_TxMessage.channel : MIDI_TxMessage.value;
-		LED_SetValue(value, LED_DARK, LED_ORANGE, MIDI_CC_BITS, LED_TIM_NORM);
+		uint8_t value;
+		uint8_t color0;
+		uint8_t	color1;
+		if (MIDI_TxMessage.header == MIDI_NT_ON) {
+			value = MIDI_TxMessage.channel;
+			color0 = LED_DARK;
+			color1 = LED_ORANGE;
+		} else {
+			value = MIDI_TxMessage.value;
+			color0 = LED_DARK;
+			color1 = LED_GREEN;
+		}
+		LED_SetValue(value, color0, color1, MIDI_CC_BITS, LED_TIM_NORM);
 	}
 
 }

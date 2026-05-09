@@ -97,11 +97,11 @@ void LED_TestPattern() {
 
 /**
  * @brief	Set LEDs by value.
- * @param	value
- * @param	color0
- * @param	color1
- * @param	length
- * @aram	pulse
+ * @param	value	value to display.
+ * @param	color0	LED color corresponds bit value 0.
+ * @param	color1	LED color corresponds bit value 1.
+ * @param	length	effective bit lenth of 'value' parameter.
+ * @param	pulse	duration of display(24ms unit).
  */
 void LED_SetValue(uint8_t value, uint8_t color0, uint8_t color1, uint8_t length, uint8_t pulse) {
 

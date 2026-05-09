@@ -11,12 +11,20 @@ extern TIM_HandleTypeDef htim1;
 uint8_t SPEAKER_Timer;
 bool SPEAKER_Timer_Enable;
 
+/**
+ * @brief Initialize speaker
+ */
 void SPEAKER_Initialize() {
 	SPEAKER_Timer_Enable = false;
 	SPEAKER_Timer = SPEAKER_TIMER_STOP;
 	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 }
 
+/**
+ * @brief Play single tone.
+ * @param frequency (defined in speaker.h)
+ * @param duration (24ms unit, defined in speaker.h)
+ */
 void SPEAKER_PlaySound(uint16_t freq, uint8_t duration) {
 	SPEAKER_Timer = duration;
 	SPEAKER_Timer_Enable = true;
@@ -26,6 +34,9 @@ void SPEAKER_PlaySound(uint16_t freq, uint8_t duration) {
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 }
 
+/**
+ * @brief Stop sound from speaker
+ */
 void SPEAKER_Stop() {
 	SPEAKER_Timer_Enable = false;
 	SPEAKER_Timer = SPEAKER_TIMER_STOP;

@@ -245,7 +245,7 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
 	Start_LongTimer(MSG_TIMER_DEFAULT);
 
-	// Check SW17/PA9 and SW18/PA2 is pushed at Power On
+	// Check SW17/PA9 and SW18/PA2 is pushed simultaneously at Power On
 	uint16_t r = (~(GPIOA->IDR)) & BOOT_DFU_MASK;
 	if (r == BOOT_DFU_MASK) { // MTD: define key combination
 		LrState = LR_USB_DFU;
