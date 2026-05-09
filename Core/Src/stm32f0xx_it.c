@@ -315,10 +315,11 @@ void TIM2_IRQHandler(void)
 			if (prev_sidesw == current_scan.line.n2.u16.side_sw.u16) {
 				current_sidesw.u16.side_sw.bits.sw17 = current_scan.line.n2.u16.side_sw.bits.sw17;
 				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
+
 				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push.u16.side_sw.u16; // include virtual switches
-				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
-				MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
 				if(sidesw_dif != 0) {
+					MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
+					MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
 					prev_sidesw_push.u16.side_sw.u16 = current_sidesw.u16.side_sw.u16;
 					isAnySwitchPushed = true;
 				}
