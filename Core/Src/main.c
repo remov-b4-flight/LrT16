@@ -51,6 +51,7 @@
 extern	uint8_t	LEDColor[LED_COUNT];
 extern	uint8_t	LEDTimer[LED_COUNT];
 extern	uint8_t SPEAKER_Timer;
+extern	bool	SPEAKER_Timer_Enable;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -268,31 +269,36 @@ int main(void)
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-2.
 			Start_All_Encoders();				// Start rotary encoder.
 
-			// Connection banner
+			// Show connection banner
 			Start_LongTimer(MSG_TIMER_CONNECT);
 			memcpy(LEDColor, LED_Scene[LrScene], LED_COUNT);
+
 			uint8_t color;
 			uint8_t ver_bits;
-			if (USBD_DEVICE_VER < 0x0100) {
 #ifdef DEBUG
+			if (USBD_DEVICE_VER < 0x0100) {
 				color = LED_DARK;
-#else
-				color = LED_GREEN;
-#endif
 				ver_bits = (USBD_DEVICE_VER) & 0xFF;
 			}else{
-#ifdef DEBUG
 				color = LED_WHITE;
-#else
-				color = LED_ORANGE;
-#endif
 				ver_bits = (USBD_DEVICE_VER >> 4) & 0xFF;
 			}
+#else
+			if (USBD_DEVICE_VER < 0x0100) {
+				color = LED_GREEN;
+				ver_bits = (USBD_DEVICE_VER) & 0xFF;
+			}else{
+				color = LED_ORANGE;
+				ver_bits = (USBD_DEVICE_VER >> 4) & 0xFF;
+			}
+#endif
+
 			for (uint8_t i = 0; i < LED_COUNT; i++) {
-				LEDColor[i] = (ver_bits & (1<<i)) ? color : LED_OFF;
-				LED_SetPulse(i,LEDColor[i], LED_PULSE_2S);
+				LEDColor[i] = (ver_bits & (1<<i))? color : LED_OFF;
+				LED_SetPulse(i, LEDColor[i], LED_PULSE_2S);
 			}
 
+			SPEAKER_PlaySound(FREQ_D7,SPEAKER_TIMER_0R2S);
 			LrState = LR_USB_LINKED;
 
 		} else if (LrState == LR_USB_LINKED) {
@@ -304,6 +310,7 @@ int main(void)
 			HAL_TIM_Base_Stop(&htim1);
 			Matrix_Control(Lr_MATRIX_STOP);		// Stop L0-L2
 
+			SPEAKER_PlaySound(FREQ_A7,SPEAKER_TIMER_0R5S);
 			LED_TestPattern();
 			Msg_1st_timeout = false;
 			Start_LongTimer(MSG_TIMER_DEFAULT);
@@ -315,7 +322,6 @@ int main(void)
 			if (Long_Timer_flag == true) {
 				if (Msg_1st_timeout == true) {
 					LrState = LR_USB_LINK_LOST;
-					SPEAKER_PlaySound(FREQ_C6,SPEAKER_TIMER_0R2S);
 				} else { // 2nd or more
 
 					// Restart OLED timer.
@@ -338,12 +344,12 @@ int main(void)
 		} else if (LrState == LR_USB_DFU) {
 			if (Long_Timer_flag == true) {
 				if (nc_count == 0) {
-					// Pla DFU sound
-					SPEAKER_PlaySound(FREQ_C7,SPEAKER_TIMER_0R2S);
+					// Play DFU sound
+					SPEAKER_PlaySound(FREQ_E7,SPEAKER_TIMER_0R2S);
 					nc_count++;
 				} else if(nc_count == 1) {
 					// Show LED pattern
-					SPEAKER_PlaySound(FREQ_E7,SPEAKER_TIMER_0R2S);
+					SPEAKER_PlaySound(FREQ_G7,SPEAKER_TIMER_0R2S);
 					LED_TestPattern();
 					nc_count++;
 				} else if (nc_count <= 2) {
@@ -365,7 +371,7 @@ int main(void)
 				}
 			}
 			// Speaker Timer
-			if (SPEAKER_Timer != SPEAKER_TIMER_CONTINUOUS && --SPEAKER_Timer == 0) {
+			if ( SPEAKER_Timer_Enable == true && (--SPEAKER_Timer) == SPEAKER_TIMER_STOP ) {
 				SPEAKER_Stop();
 			}
 			// Long Timer

@@ -78,4 +78,7 @@
 //! Others
 #define CC_CH_COUNT			128
 #define	CC_CH_MAX			(CC_CH_COUNT-1)
+
+#define MIDI_CC_BITS		7
+#define MIDI_CH_BITS		7
 #endif /* INC_MIDI_NOTE_H_ */

@@ -85,7 +85,8 @@ typedef union leddata_t {
 /* Exported functions prototypes ---------------------------------------------*/
 	void LED_Initialize();
 	void LED_TestPattern();
-	void LED_SetPulse(uint8_t index, uint8_t color,uint8_t pulse);
+	void LED_SetValue(uint8_t value, uint8_t color0, uint8_t color1, uint8_t length, uint8_t pulse);
+	void LED_SetPulse(uint8_t index, uint8_t color, uint8_t pulse);
 	bool LED_SendPulse();
 	void LED_SetScene(uint8_t scene);
 	/* Provide C++ Compatibility */

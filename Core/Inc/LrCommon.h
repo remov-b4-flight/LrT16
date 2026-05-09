@@ -137,11 +137,12 @@ enum lr_matrix_t {
 	Lr_MATRIX_STOP = 0,
 	Lr_MATRIX_START = 1,
 };
-//!
+
+//! due to MIDI CC channel/notea limits, Max scene count will 8.
 #define SCENE_COUNT_MAX	8
 //! number of scenes (avail. range:1~7)
 //! @note need to match ((SCENE_COUNT+1) * ENC_COUNT) < 127
-#define SCENE_COUNT		3
+#define SCENE_COUNT		7
 #define Lr_SCENE_MAX	SCENE_COUNT
 //! Assigned notes per scene.
 #define NOTES_PER_SCENE	16
@@ -168,6 +169,6 @@ enum lr_matrix_t {
 #define MSG_TIMER_CONNECT	167		//4Sec (USB connected)
 
 //! LP(long_press) timer def.
-#define LP_TIM_NORM	13
+#define LP_TIM_NORM	20
 
 #endif /* INC_LRCOMMON_H_ */

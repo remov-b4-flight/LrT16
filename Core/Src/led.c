@@ -15,9 +15,9 @@ extern TIM_HandleTypeDef htim14;
 extern bool	isLEDsendpulse;
 extern uint8_t	LED_Scene[SCENE_COUNT][LED_COUNT];
 
-uint8_t	LEDColor[LED_COUNT];		// coded LED color value
-uint16_t	LEDPulse[TOTAL_BITS+1];	// Data formed PWM width send to LED
-uint8_t	LEDTimer[LED_COUNT];		// Individual LED Timer Counter
+uint8_t		LEDColor[LED_COUNT];		// coded LED color value
+uint16_t	LEDPulse[TOTAL_BITS+1];		// Data formed PWM width send to LED
+uint8_t		LEDTimer[LED_COUNT];		// Individual LED Timer Counter
 
 /**
  * @brief RGB LED intensity table
@@ -104,14 +104,14 @@ void LED_TestPattern() {
  * @aram	pulse
  */
 void LED_SetValue(uint8_t value, uint8_t color0, uint8_t color1, uint8_t length, uint8_t pulse) {
-	uint8_t	n = value;
-	for (uint8_t i=0; i < sizeof(value); i++ ){
-		if (i > length) {
+
+	for (uint8_t i=0,m=1; i < LED_COUNT; i++ ){
+		if (i >= length) {
 			LEDColor[i] = LED_OFF;
 		}else{
-			LEDColor[i] = (n & 1)? color1:color0;
+			LEDColor[i] = (value & m)? color1:color0;
 		}
-		n >>= 1;
+		m <<= 1;
 		LEDTimer[i] = pulse;
 	}
 	isLEDsendpulse = true;

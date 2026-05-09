@@ -123,6 +123,7 @@ void EmulateMIDI() {
 					LrScene = Lr_SCENE1;
 					isScene_Timeout = false;
 				}
+				SPEAKER_PlaySound(FREQ_D7,SPEAKER_TIMER_0R2S);
 				LED_SetScene(LrScene);
 				isPrev_Scene = true;
 
@@ -135,16 +136,17 @@ void EmulateMIDI() {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 0;
 				prev_sidesw_push.u16.side_sw.bits.sw17lp = 1;
 				note = NOTE_FUNC_LP;
+				SPEAKER_PlaySound(FREQ_G7,SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
 			}else if(MTX_Stat.line.n2.u16.side_sw.bits.sw17sp == 1) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 0;
 				prev_sidesw_push.u16.side_sw.bits.sw17sp = 1;
 				note = NOTE_FUNC_SW;
+				SPEAKER_PlaySound(FREQ_E7,SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
 			} else {
 				note = (LrScene * NOTES_PER_SCENE) + bitpos;
-				//	LED_SetPulse(prof_table[LrScene][bitpos].axis, prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
-
+				SPEAKER_PlaySound(FREQ_E7,SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
 			}
 
@@ -230,10 +232,10 @@ rot_stopped_exits:
 		}
 	}
 
-	//Flash LED.
+	// Flash LED.
 	if (isLEDflash == true) {
-//		LED_SetPulse(prof_table[LrScene][bitpos].axis,
-//					prof_table[LrScene][bitpos].color, prof_table[LrScene][bitpos].period);
+		uint8_t value = (MIDI_TxMessage.header == MIDI_NT_ON)? MIDI_TxMessage.channel : MIDI_TxMessage.value;
+		LED_SetValue(value, LED_DARK, LED_ORANGE, MIDI_CC_BITS, LED_TIM_NORM);
 	}
 
 }
