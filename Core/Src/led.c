@@ -105,7 +105,7 @@ void LED_TestPattern() {
  */
 void LED_SetValue(uint8_t value, uint8_t color0, uint8_t color1, uint8_t length, uint8_t pulse) {
 
-	for (uint8_t i=0,m=1; i < LED_COUNT; i++ ){
+	for (uint8_t i=0,m=1; i < LED_COUNT; i++ ) {
 		if (i >= length) {
 			LEDColor[i] = LED_OFF;
 		}else{
@@ -137,10 +137,10 @@ static void Color2Pulse() {
 	uint8_t	pulse = 0;
 	LEDDATA	leddata;
 	//Convert LEDColor[] to LEDPulse[];
-	for(uint8_t led = 0; led < LED_COUNT; led++){
+	for (uint8_t led = 0; led < LED_COUNT; led++) {
 		uint8_t c = LEDColor[led];
 		leddata.n = LEDTable[c].n;
-		for (uint32_t mask = B31_MASK; mask > B7_MASK; mask >>= 1){
+		for (uint32_t mask = B31_MASK; mask > B7_MASK; mask >>= 1) {
 			LEDPulse[pulse++] = (leddata.n & mask)? PWM_HI:PWM_LO;
 		}
 	}

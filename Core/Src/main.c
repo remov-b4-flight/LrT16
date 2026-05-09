@@ -139,7 +139,7 @@ static inline void Start_All_Encoders() {
 /**
  * @brief Start OLED off timer
 */
-void Start_LongTimer(uint32_t tick){
+void Start_LongTimer(uint32_t tick) {
 	Long_Timer_flag = false;
 	Long_Timer_Count = tick;
 	Long_Timer_Enable = true;

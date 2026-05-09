@@ -73,7 +73,7 @@ static uint16_t MIDI_DataRx(uint8_t *msg, uint16_t length) {
 /**
  * @brief Unused callback function
  */
-static uint16_t MIDI_DataTx(uint8_t *msg, uint16_t length){
+static uint16_t MIDI_DataTx(uint8_t *msg, uint16_t length) {
 	return USBD_OK;
 }
 
