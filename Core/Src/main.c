@@ -103,6 +103,7 @@ const uint8_t LED_Scene[SCENE_COUNT_MAX][LED_COUNT] = {
 	{LED_RED,	LED_RED,	LED_RED,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF,	LED_OFF },	//Scene7
 };
 
+const uint16_t PlayTable[4] = {FREQ_D7, FREQ_E7, FREQ_F7, FREQ_G7};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -310,7 +311,7 @@ int main(void)
 			HAL_TIM_Base_Stop(&htim1);
 			Matrix_Control(Lr_MATRIX_STOP);		// Stop L0-L2
 
-			SPEAKER_PlaySound(FREQ_A7,SPEAKER_TIMER_0R5S);
+			SPEAKER_PlaySound(FREQ_G7,SPEAKER_TIMER_0R5S);
 			LED_TestPattern();
 			Msg_1st_timeout = false;
 			Start_LongTimer(MSG_TIMER_DEFAULT);
@@ -323,7 +324,8 @@ int main(void)
 				if (Msg_1st_timeout == true) {
 					LrState = LR_USB_LINK_LOST;
 				} else { // 2nd or more
-
+					nc_count++;
+					SPEAKER_PlaySound(PlayTable[(nc_count%6)], SPEAKER_TIMER_0R2S);
 					// Restart OLED timer.
 					Start_LongTimer(MSG_TIMER_NOLINK);
 

@@ -60,7 +60,7 @@ __ALIGN_BEGIN uint8_t USBD_MIDI_CfgDesc[USB_MIDI_CONFIG_DESC_SIZE] __ALIGN_END =
 	0x05, CS_ENDPOINT, MS_GENERAL, 0x01, MIDI_JACK_NO_OUT_ENB,
 };
 
-static uint8_t USBD_MIDI_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx){
+static uint8_t USBD_MIDI_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx) {
 	pInstance = pdev;
 	USBD_LL_OpenEP(pdev,MIDI_IN_EP,USBD_EP_TYPE_BULK,MIDI_DATA_IN_PACKET_SIZE);
 	USBD_LL_OpenEP(pdev,MIDI_OUT_EP,USBD_EP_TYPE_BULK,MIDI_DATA_OUT_PACKET_SIZE);
@@ -68,14 +68,14 @@ static uint8_t USBD_MIDI_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx){
 	return 0;
 }
 
-static uint8_t USBD_MIDI_DeInit (USBD_HandleTypeDef *pdev, uint8_t cfgidx){
+static uint8_t USBD_MIDI_DeInit (USBD_HandleTypeDef *pdev, uint8_t cfgidx) {
 	pInstance = NULL;
 	USBD_LL_CloseEP(pdev,MIDI_IN_EP);
 	USBD_LL_CloseEP(pdev,MIDI_OUT_EP);
 	return 0;
 }
 
-static uint8_t USBD_MIDI_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum){
+static uint8_t USBD_MIDI_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum) {
 #if 0 //Unused for LrTMAX
 		pmidi->pIf_MidiTx((uint8_t *)&USB_Tx_Buffer, USB_Tx_Cnt);	//call MIDI_DataTx()
 #endif
@@ -94,7 +94,7 @@ static uint8_t	USBD_MIDI_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum)
 	return USBD_OK;
 }
 
-static uint8_t *USBD_MIDI_GetCfgDesc (uint16_t *length){
+static uint8_t *USBD_MIDI_GetCfgDesc (uint16_t *length) {
 	*length = sizeof (USBD_MIDI_CfgDesc);
 	return USBD_MIDI_CfgDesc;
 }
@@ -103,7 +103,7 @@ uint8_t USBD_MIDI_RegisterInterface(USBD_HandleTypeDef *pdev, USBD_MIDI_ItfTypeD
 {
 	uint8_t ret = USBD_FAIL;
 
-	if(fops != NULL){
+	if (fops != NULL) {
 		pdev->pUserData= fops;
 		ret = USBD_OK;
 	}

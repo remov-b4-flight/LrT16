@@ -203,7 +203,7 @@ void SysTick_Handler(void)
 void DMA1_Channel4_5_6_7_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_5_6_7_IRQn 0 */
-  if(DMA1->ISR & DMA_ISR_TCIF4) {
+  if (DMA1->ISR & DMA_ISR_TCIF4) {
 	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_1);
 
 	GPIOA->ODR |= GPIO_PIN_6;	//'RESET' state
@@ -266,7 +266,7 @@ void TIM2_IRQHandler(void)
 						isAnyEncoderMoved = true;
 						scene_timer = 0;
 					} else {
-						if(( dechatter_rate - dechatter_timer) > DECHATTER_THR) {
+						if (( dechatter_rate - dechatter_timer) > DECHATTER_THR) {
 							dechatter_rate -= DECHATTER_DEC;
 							if (dechatter_rate < DECHATTER_MIN) {
 								dechatter_rate = DECHATTER_MIN;

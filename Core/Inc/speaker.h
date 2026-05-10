@@ -16,21 +16,10 @@
 #define SPEAKER_TIMER_1S	42
 #define SPEAKER_TIMER_CONTINUOUS 0xff
 
-#define FREQ_C7		477
-#define FREQ_CS7	451
 #define FREQ_D7		425
-#define FREQ_DS7	401
 #define FREQ_E7		379
 #define FREQ_F7		357
-#define FREQ_FS7	337
 #define FREQ_G7		318
-#define FREQ_GS7	301
-#define FREQ_A7		284
-#define FREQ_AS7	268
-#define FREQ_B7		253
-//
-#define FREQ_C8		238
-//
 #define FREQ_2700HZ	370
 
 void SPEAKER_Initialize();

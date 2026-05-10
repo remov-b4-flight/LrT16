@@ -73,7 +73,7 @@ static void LED_Delay_us() {
 	HAL_TIM_Base_Start(&htim14);
 	htim14.Instance->SR = 0;
 
-	while((htim14.Instance->SR & TIM_SR_UIF) == 0)	;	//wait until timer up.
+	while ((htim14.Instance->SR & TIM_SR_UIF) == 0)	;	//wait until timer up.
 
 	HAL_TIM_Base_Stop(&htim14);
 }
@@ -109,7 +109,7 @@ void LED_SetValue(uint8_t value, uint8_t color0, uint8_t color1, uint8_t length,
 		if (i >= length) {
 			LEDColor[i] = LED_OFF;
 		}else{
-			LEDColor[i] = (value & m)? color1:color0;
+			LEDColor[i] = (value & m)? color1 : color0;
 		}
 		m <<= 1;
 		LEDTimer[i] = pulse;

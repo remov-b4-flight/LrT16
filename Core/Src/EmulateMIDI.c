@@ -108,7 +108,7 @@ void EmulateMIDI() {
 	} else if (isAnySwitchPushed == true) {
 		bitpos = ntz16(MTX_Stat.line.n2.u16.side_sw.u16);
 
-		if ( MTX_Stat.u64 != 0) { //Check Matrix switches/encoders
+		if ( MTX_Stat.line.n2.u32 != 0) { //Check Matrix switches/encoders
 			//Send 'Note On' message from switches/encoders matrix.
 			uint8_t	note;
 			if (MTX_Stat.line.n2.u16.side_sw.bits.sw17 == 1
@@ -123,12 +123,13 @@ void EmulateMIDI() {
 					LrScene = Lr_SCENE1;
 					isScene_Timeout = false;
 				}
-				SPEAKER_PlaySound(FREQ_D7,SPEAKER_TIMER_0R2S);
+				SPEAKER_PlaySound(FREQ_D7, SPEAKER_TIMER_0R2S);
 				LED_SetScene(LrScene);
 				isPrev_Scene = true;
 
 				isSendMIDIMessage = true;
 			} else if (MTX_Stat.line.n2.u16.side_sw.bits.sw17 == 1) {
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = 0;
 				// run LP_Timer for determine long push
 				LP_Timer = LP_TIM_NORM;
 				LP_Timer_Enable = true;
@@ -136,17 +137,17 @@ void EmulateMIDI() {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 0;
 				prev_sidesw_push.u16.side_sw.bits.sw17lp = 1;
 				note = NOTE_FUNC_LP;
-				SPEAKER_PlaySound(FREQ_G7,SPEAKER_TIMER_0R1S);
+				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
-			} else if(MTX_Stat.line.n2.u16.side_sw.bits.sw17sp == 1) {
+			} else if (MTX_Stat.line.n2.u16.side_sw.bits.sw17sp == 1) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 0;
 				prev_sidesw_push.u16.side_sw.bits.sw17sp = 1;
 				note = NOTE_FUNC_SW;
-				SPEAKER_PlaySound(FREQ_E7,SPEAKER_TIMER_0R1S);
+				SPEAKER_PlaySound(FREQ_E7, SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
 			} else {
 				note = (LrScene * NOTES_PER_SCENE) + bitpos;
-				SPEAKER_PlaySound(FREQ_E7,SPEAKER_TIMER_0R1S);
+				SPEAKER_PlaySound(FREQ_E7, SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
 			}
 
@@ -216,18 +217,21 @@ rot_stopped_exits:
 	if (Soft_Timer_Update == true) { // 24ms interval
 		if (LP_Timer_Enable == true) {
 			// shortcut for sw17 release under LPTimer running
-			if ((SSW_GPIO_Port->IDR & SW17_Pin)? true:false ) {
+			uint16_t s17 = (SSW_GPIO_Port->IDR & SW17_Pin);
+			if (s17 != 0 ) { // released ?
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 1;
+				prev_sidesw_push.u16.side_sw.bits.sw17 = 0;
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = 0;
 				LP_Timer_Enable = false;
 				LP_Timer = 0;
-			}
-			if (--LP_Timer == 0) { // check for Timer is up
-				if ((SSW_GPIO_Port->IDR & SW17_Pin) == GPIO_SW_PUSHED) {	// pin still pushed
-					MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 1;
-				} else { // already released
-					MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 1;
-				}
+				isAnySwitchPushed = true;
+			} else if (--LP_Timer == 0) { // check for Timer is up
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 1;
+				prev_sidesw_push.u16.side_sw.bits.sw17 = 0;
+				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = 0;
 				LP_Timer_Enable = false;
+				LP_Timer = 0;
+				isAnySwitchPushed = true;
 			}
 		}
 	}
