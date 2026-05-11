@@ -135,13 +135,13 @@ void EmulateMIDI() {
 				LP_Timer_Enable = true;
 			} else if (MTX_Stat.line.n2.u16.side_sw.bits.sw17lp == 1) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 0;
-				prev_sidesw_push.u16.side_sw.bits.sw17lp = 1;
+//				prev_sidesw_push.u16.side_sw.bits.sw17lp = 1;
 				note = NOTE_FUNC_LP;
 				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
 			} else if (MTX_Stat.line.n2.u16.side_sw.bits.sw17sp == 1) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 0;
-				prev_sidesw_push.u16.side_sw.bits.sw17sp = 1;
+//				prev_sidesw_push.u16.side_sw.bits.sw17sp = 1;
 				note = NOTE_FUNC_SW;
 				SPEAKER_PlaySound(FREQ_E7, SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
@@ -215,24 +215,21 @@ rot_stopped_exits:
 	}
 
 	if (Soft_Timer_Update == true) { // 24ms interval
-		if (LP_Timer_Enable == true) {
+		if (LP_Timer_Enable == true　&& --LP_Timer == 0) {
 			// shortcut for sw17 release under LPTimer running
 			uint16_t s17 = (SSW_GPIO_Port->IDR & SW17_Pin);
 			if (s17 != 0 ) { // released ?
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 1;
-				prev_sidesw_push.u16.side_sw.bits.sw17 = 0;
-				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = 0;
-				LP_Timer_Enable = false;
-				LP_Timer = 0;
-				isAnySwitchPushed = true;
-			} else if (--LP_Timer == 0) { // check for Timer is up
+//				prev_sidesw_push.u16.side_sw.bits.sw17 = 0;
+//				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = 0;
+			} else  {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 1;
-				prev_sidesw_push.u16.side_sw.bits.sw17 = 0;
-				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = 0;
-				LP_Timer_Enable = false;
-				LP_Timer = 0;
-				isAnySwitchPushed = true;
+//				prev_sidesw_push.u16.side_sw.bits.sw17 = 0;
+//				MTX_Stat.line.n2.u16.side_sw.bits.sw17 = 0;
 			}
+			isAnySwitchPushed = true;
+			LP_Timer_Enable = false;
+			LP_Timer = 0;
 		}
 	}
 
