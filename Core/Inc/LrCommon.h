@@ -169,6 +169,6 @@ enum lr_matrix_t {
 #define MSG_TIMER_CONNECT	167		//4Sec (USB connected)
 
 //! LP(long_press) timer def.
-#define LP_TIM_NORM	20
+#define LP_TIM_NORM	16
 
 #endif /* INC_LRCOMMON_H_ */
