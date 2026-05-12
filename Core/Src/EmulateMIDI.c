@@ -135,13 +135,11 @@ void EmulateMIDI() {
 				LP_Timer_Enable = true;
 			} else if (MTX_Stat.line.n2.u16.side_sw.bits.sw17lp == 1) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17lp = 0;
-//				prev_sidesw_push.u16.side_sw.bits.sw17lp = 1;
 				note = NOTE_FUNC_LP;
 				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
 			} else if (MTX_Stat.line.n2.u16.side_sw.bits.sw17sp == 1) {
 				MTX_Stat.line.n2.u16.side_sw.bits.sw17sp = 0;
-//				prev_sidesw_push.u16.side_sw.bits.sw17sp = 1;
 				note = NOTE_FUNC_SW;
 				SPEAKER_PlaySound(FREQ_E7, SPEAKER_TIMER_0R1S);
 				isSendMIDIMessage = true;
