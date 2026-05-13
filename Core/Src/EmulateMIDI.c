@@ -93,10 +93,10 @@ void EmulateMIDI() {
 	uint8_t	bitpos;
 	if (queue_isempty(&midi_rx_que) != true) { // Check MIDI CC message received.
 		CH_VAL rx;
-		uint8_t cc_scene = 0;
+//		uint8_t cc_scene = 0;
 		do {
 			rx.wd = queue_dequeue(&midi_rx_que);
-			cc_scene = (rx.by.ch / CC_CH_PER_SCENE) & CH_SCENE_MASK;
+//			cc_scene = (rx.by.ch / CC_CH_PER_SCENE) & CH_SCENE_MASK;
 			if ( CC_MIN_INUSE <= rx.by.ch && rx.by.ch < CC_MAX_INUSE ) {
 				MIDI_CC_Value[rx.by.ch] = rx.by.val;
 			}
