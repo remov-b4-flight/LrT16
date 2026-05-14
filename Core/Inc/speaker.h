@@ -17,10 +17,11 @@
 #define SPEAKER_TIMER_CONTINUOUS 0xff
 
 #define FREQ_D7		425
+#define FREQ_DS7	401
+#define FREQ_2700HZ	370
 #define FREQ_E7		379
 #define FREQ_F7		357
 #define FREQ_G7		318
-#define FREQ_2700HZ	370
 
 void SPEAKER_Initialize();
 void SPEAKER_PlaySound(uint16_t freq,uint8_t duration);

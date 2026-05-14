@@ -123,7 +123,7 @@ void EmulateMIDI() {
 					LrScene = Lr_SCENE1;
 					isScene_Timeout = false;
 				}
-				SPEAKER_PlaySound(FREQ_D7, SPEAKER_TIMER_0R2S);
+				SPEAKER_PlaySound(FREQ_DS7, SPEAKER_TIMER_0R2S);
 				LED_SetScene(LrScene);
 				isPrev_Scene = true;
 

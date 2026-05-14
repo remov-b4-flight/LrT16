@@ -14,10 +14,8 @@ bool SPEAKER_Timer_Enable;
 /**
  * @brief Initialize speaker
  */
-void SPEAKER_Initialize() {
-	SPEAKER_Timer_Enable = false;
-	SPEAKER_Timer = SPEAKER_TIMER_STOP;
-	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+inline void SPEAKER_Initialize() {
+	SPEAKER_Stop();
 }
 
 /**

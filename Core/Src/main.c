@@ -299,7 +299,7 @@ int main(void)
 				LED_SetPulse(i, LEDColor[i], LED_PULSE_2S);
 			}
 
-			SPEAKER_PlaySound(FREQ_D7,SPEAKER_TIMER_0R2S);
+			SPEAKER_PlaySound(FREQ_2700HZ,SPEAKER_TIMER_0R2S);
 			LrState = LR_USB_LINKED;
 
 		} else if (LrState == LR_USB_LINKED) {
