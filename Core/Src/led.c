@@ -105,7 +105,7 @@ void LED_TestPattern() {
  */
 void LED_SetValue(uint8_t value, uint8_t color0, uint8_t color1, uint8_t length, uint8_t pulse) {
 
-	for (uint8_t i=0,m=1; i < LED_COUNT; i++ ) {
+	for (uint8_t i=0, m=1; i < LED_COUNT; i++ ) {
 		if (i >= length) {
 			LEDColor[i] = LED_OFF;
 		}else{
