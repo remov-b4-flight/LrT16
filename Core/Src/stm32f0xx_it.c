@@ -232,22 +232,20 @@ void TIM2_IRQHandler(void)
 		case L0: // ENC0~7
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.line.n0 = (r);
+
 			ENCSW_Line++;
-//			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
-			L0_GPIO_Port->MODER |= 0x03000000; // set L0(PC13) for analog in
-//			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
-			L1_GPIO_Port->MODER &= 0xefffffff;	// set L1(PC14) for output
-			L1_GPIO_Port->MODER |= 0x20000000;	// set L1(PC14) for output
+			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
+
 			break;
 		case L1: // ENC 8-15
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.line.n1 = (r);
+
 			ENCSW_Line++;
-//			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
-			L1_GPIO_Port->MODER |= 0x30000000; // set L1(PC14) for analog in
-//			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
-			L2_GPIO_Port->MODER &= 0x7fffffff;	// set L2(PC15) for output
-			L2_GPIO_Port->MODER |= 0x40000000;	// set L2(PC15) for output
+			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
+
 			if (previous_enc == current_enc.u32) { // Encoder signals are stable
 				current_move = current_enc.u32;
 				uint32_t enc_dif = previous_move ^ current_move;
@@ -288,12 +286,11 @@ void TIM2_IRQHandler(void)
 		case L2: /* ENC push SW1-16,SW17,SW18*/
 			r = (Mx_GPIO_Port->IDR);
 			current_scan.line.n2.u16.enc_sw = (r);
-//			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
-			L2_GPIO_Port->MODER |= 0xC0000000; // set L1(PC14) for analog in
-//			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
-			GPIOC->MODER &= 0xf7ffffff;	// set L0(PC13) for output
-			GPIOC->MODER |= 0x04000000;	// set L0(PC13) for output
+
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
 			ENCSW_Line = L0;
+
 			r = (SSW_GPIO_Port->IDR);	//Get side switches
 			current_scan.line.n2.u16.side_sw.bits.sw17 = (r & SW17_Pin)? 0:1;
 			current_scan.line.n2.u16.side_sw.bits.sw18 = (r & SW18_Pin)? 0:1;

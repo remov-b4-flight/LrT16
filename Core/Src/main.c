@@ -147,7 +147,7 @@ void Start_LongTimer(uint32_t tick) {
 }
 
 /**
- * @brief start/stop matrix L0-L3 control
+ * @brief start/stop matrix L0-L2 control
  * @param control Lr_MATRIX_START / Lr_MATRIX_STOP
  */
 static void Matrix_Control(uint8_t control) {
@@ -156,14 +156,8 @@ static void Matrix_Control(uint8_t control) {
 	}
 
 	HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, (control == Lr_MATRIX_START)? GPIO_PIN_SET : GPIO_PIN_RESET);
-	if (control == Lr_MATRIX_START) {
-		GPIOC->MODER &= 0xf7ffffff;	// set L0(PC13) for output
-		GPIOC->MODER |= 0x04000000;	// set L0(PC13) for output
-		HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
-	} else {
-		L0_GPIO_Port->MODER |= 0x03000000; // set L0(PC13) for analog in
-	}
-	GPIOC->MODER |= 0xf0000000; // set L2(PC15) and L1(PC14) for analog in
+	HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
 	ENCSW_Line = L0;
 }
 /* USER CODE END 0 */
