@@ -285,7 +285,7 @@ void TIM2_IRQHandler(void)
 			break;
 		case L2: /* ENC push SW1-16,SW17,SW18*/
 			r = (Mx_GPIO_Port->IDR);
-			current_scan.line.n2.u16.enc_sw = (r);
+			current_scan.line.n2.u16.enc_sw = (~r);
 
 			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
@@ -314,7 +314,7 @@ void TIM2_IRQHandler(void)
 				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
 
 				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push.u16.side_sw.u16; // include virtual switches
-				if(sidesw_dif != 0) {
+				if (sidesw_dif != 0) {
 					MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
 					MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
 					prev_sidesw_push.u16.side_sw.u16 = current_sidesw.u16.side_sw.u16;
