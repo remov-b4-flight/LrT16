@@ -1,0 +1,14 @@
+../Core/Src/main.c:128:20:Stop_All_Encoders	1
+../Core/Src/main.c:135:20:Start_All_Encoders	1
+../Core/Src/main.c:143:6:Start_LongTimer	1
+../Core/Src/main.c:153:13:Matrix_Control	3
+../Core/Src/main.c:175:5:main	25
+../Core/Src/main.c:412:6:SystemClock_Config	4
+../Core/Src/main.c:455:13:MX_TIM1_Init	7
+../Core/Src/main.c:530:13:MX_TIM2_Init	4
+../Core/Src/main.c:575:13:MX_TIM3_Init	6
+../Core/Src/main.c:634:13:MX_TIM6_Init	3
+../Core/Src/main.c:672:13:MX_TIM14_Init	2
+../Core/Src/main.c:701:13:MX_DMA_Init	1
+../Core/Src/main.c:719:13:MX_GPIO_Init	1
+../Core/Src/main.c:808:6:Error_Handler	1

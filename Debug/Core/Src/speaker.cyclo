@@ -1,0 +1,3 @@
+../Core/Src/speaker.c:17:13:SPEAKER_Initialize	1
+../Core/Src/speaker.c:26:6:SPEAKER_PlaySound	1
+../Core/Src/speaker.c:38:6:SPEAKER_Stop	1

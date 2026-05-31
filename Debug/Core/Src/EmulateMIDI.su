@@ -1,0 +1,4 @@
+../Core/Src/EmulateMIDI.c:50:13:MIDI_CC_Inc	16	static
+../Core/Src/EmulateMIDI.c:63:13:MIDI_CC_Dec	16	static
+../Core/Src/EmulateMIDI.c:75:6:EmulateMIDI_Init	8	static
+../Core/Src/EmulateMIDI.c:90:6:EmulateMIDI	40	static
