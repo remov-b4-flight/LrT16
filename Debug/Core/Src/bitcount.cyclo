@@ -1,5 +1,0 @@
-../Core/Src/bitcount.c:16:9:bitcount8	1
-../Core/Src/bitcount.c:27:9:bitcount16	1
-../Core/Src/bitcount.c:39:5:bitcount32	1
-../Core/Src/bitcount.c:52:9:ntz16	1
-../Core/Src/bitcount.c:62:9:ntz32	1

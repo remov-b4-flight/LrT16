@@ -1,4 +1,0 @@
-../Core/Src/EmulateMIDI.c:50:13:MIDI_CC_Inc	2
-../Core/Src/EmulateMIDI.c:63:13:MIDI_CC_Dec	2
-../Core/Src/EmulateMIDI.c:75:6:EmulateMIDI_Init	1
-../Core/Src/EmulateMIDI.c:90:6:EmulateMIDI	28

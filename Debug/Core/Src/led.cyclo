@@ -1,8 +1,0 @@
-../Core/Src/led.c:62:6:LED_Initialize	1
-../Core/Src/led.c:72:13:LED_Delay_us	2
-../Core/Src/led.c:85:6:LED_SetScene	1
-../Core/Src/led.c:93:6:LED_TestPattern	1
-../Core/Src/led.c:106:6:LED_SetValue	4
-../Core/Src/led.c:126:13:LED_SetPulse	1
-../Core/Src/led.c:136:13:Color2Pulse	4
-../Core/Src/led.c:156:6:LED_SendPulse	2

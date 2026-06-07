@@ -1,2 +1,0 @@
-../USB_DEVICE/App/usbd_midi_if.c:55:17:MIDI_DataRx	4
-../USB_DEVICE/App/usbd_midi_if.c:76:17:MIDI_DataTx	1

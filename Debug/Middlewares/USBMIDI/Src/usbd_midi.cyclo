@@ -1,6 +1,0 @@
-../Middlewares/USBMIDI/Src/usbd_midi.c:63:16:USBD_MIDI_Init	1
-../Middlewares/USBMIDI/Src/usbd_midi.c:71:16:USBD_MIDI_DeInit	1
-../Middlewares/USBMIDI/Src/usbd_midi.c:78:16:USBD_MIDI_DataIn	1
-../Middlewares/USBMIDI/Src/usbd_midi.c:85:16:USBD_MIDI_DataOut	1
-../Middlewares/USBMIDI/Src/usbd_midi.c:97:17:USBD_MIDI_GetCfgDesc	1
-../Middlewares/USBMIDI/Src/usbd_midi.c:102:9:USBD_MIDI_RegisterInterface	2
