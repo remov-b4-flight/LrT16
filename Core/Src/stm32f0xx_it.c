@@ -65,7 +65,7 @@ uint16_t previous_push;
 //! Value of scanned from key matrix.
 MTX_SCAN current_scan;
 //! Previous scanned bits
-uint32_t previous_sw;
+uint16_t previous_mtrx;
 //! Previous encoder state array
 uint8_t	enc_prev[ENC_COUNT];
 //! CUrrent encoder state array
@@ -81,11 +81,11 @@ const uint8_t enc_table[4][4] = {
 //! Current encoder scan value load by timer interrupt
 ENC_SCAN current_enc;
 //! previous encoder scan value
-uint32_t previous_enc;
+uint16_t previous_enc;
 //! Current detected bits as movement
-uint32_t current_move;
+uint16_t current_move;
 //! Previous detected bits
-uint32_t previous_move;
+uint16_t previous_move;
 //! Scene counter
 uint32_t scene_timer;
 //! De-chatter timer counter
@@ -94,8 +94,8 @@ uint8_t dechatter_timer;
 uint8_t dechatter_rate;
 //
 uint16_t prev_sidesw;
-SW_SCAN	current_sidesw;
-SW_SCAN prev_sidesw_push;
+//SW_SCAN	current_sidesw;
+//SW_SCAN prev_sidesw_push;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -103,10 +103,11 @@ extern PCD_HandleTypeDef hpcd_USB_FS;
 extern DMA_HandleTypeDef hdma_tim3_ch1_trig;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim7;
 /* USER CODE BEGIN EV */
 extern TIM_HandleTypeDef htim3;
 extern uint8_t	ENCSW_Line;
-extern bool		isAnySwitchPushed;
+extern bool		isAnyMatrixPushed;
 extern bool		isAnyEncoderMoved;
 extern MTX_SCAN	MTX_Stat;
 extern ENC_SCAN	ENC_Stat;
@@ -225,117 +226,78 @@ void DMA1_Channel4_5_6_7_IRQHandler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-	uint16_t r;
+	uint8_t r;
 
 	// scan keyboard matrix each line
 	switch(ENCSW_Line) {
-		case L0: // ENC0~7
-			r = (Mx_GPIO_Port->IDR);
-			current_scan.line.n0 = (r);
+		case L0:
+			r = (Mx_GPIO_Port->IDR) & LxMASK;
+			current_scan.nb.n0 = (r);
 			ENCSW_Line++;
-//			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
-			L0_GPIO_Port->MODER |= 0x03000000; // set L0(PC13) for analog in
-//			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
-			L1_GPIO_Port->MODER &= 0xefffffff;	// set L1(PC14) for output
-			L1_GPIO_Port->MODER |= 0x20000000;	// set L1(PC14) for output
+			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_SET);
 			break;
-		case L1: // ENC 8-15
-			r = (Mx_GPIO_Port->IDR);
-			current_scan.line.n1 = (r);
+		case L1:
+			r = (Mx_GPIO_Port->IDR) & LxMASK;
+			current_scan.nb.n1 = (r);
 			ENCSW_Line++;
-//			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
-			L1_GPIO_Port->MODER |= 0x30000000; // set L1(PC14) for analog in
-//			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
-			L2_GPIO_Port->MODER &= 0x7fffffff;	// set L2(PC15) for output
-			L2_GPIO_Port->MODER |= 0x40000000;	// set L2(PC15) for output
-			if (previous_enc == current_enc.u32) { // Encoder signals are stable
-				current_move = current_enc.u32;
-				uint32_t enc_dif = previous_move ^ current_move;
-				if (enc_dif != 0) { // If any encoder has moved.
-					previous_move = current_move;
-
-					// Determine axis
-					uint8_t	movedbits = ntz32(enc_dif);
-					uint8_t	axis = movedbits / 2;
-
-					enc_move.bits.move = enc_table[enc_prev[axis]] [enc_current[axis]];
-					enc_move.bits.axis = axis;
-
-					enc_prev[axis] = enc_current[axis];
-					if (dechatter_timer >= dechatter_rate) {
-						isAnyEncoderMoved = true;
-						scene_timer = 0;
-					} else {
-						if (( dechatter_rate - dechatter_timer) > DECHATTER_THR) {
-							dechatter_rate -= DECHATTER_DEC;
-							if (dechatter_rate < DECHATTER_MIN) {
-								dechatter_rate = DECHATTER_MIN;
-							}
-						}
-					}
-					dechatter_timer = 0;
-				} else { // all encoder not moved.
-					dechatter_rate = DECHATTER_MAX;
-				}
-			} else {
-				previous_enc = current_enc.u32;
-			}
-			if (dechatter_timer < dechatter_rate) {
-				dechatter_timer++;
-			}
-
+			HAL_GPIO_WritePin(L1_GPIO_Port, L1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_SET);
 			break;
-		case L2: /* ENC push SW1-16,SW17,SW18*/
-			r = (Mx_GPIO_Port->IDR);
-			current_scan.line.n2.u16.enc_sw = (r);
-//			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
-			L2_GPIO_Port->MODER |= 0xC0000000; // set L1(PC14) for analog in
-//			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
-			GPIOC->MODER &= 0xf7ffffff;	// set L0(PC13) for output
-			GPIOC->MODER |= 0x04000000;	// set L0(PC13) for output
+		case L2:
+			r = (Mx_GPIO_Port->IDR) & LxMASK;
+			current_scan.nb.n2 = (r);
+			ENCSW_Line++;
+			HAL_GPIO_WritePin(L2_GPIO_Port, L2_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L3_GPIO_Port, L3_Pin, GPIO_PIN_SET);
+			break;
+		case L3:
+			r = (Mx_GPIO_Port->IDR) & LxMASK;
+			current_scan.nb.n3 = (r);
+			HAL_GPIO_WritePin(L3_GPIO_Port, L3_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
 			ENCSW_Line = L0;
-			r = (SSW_GPIO_Port->IDR);	//Get side switches
-			current_scan.line.n2.u16.side_sw.bits.sw17 = (r & SW17_Pin)? 0:1;
-			current_scan.line.n2.u16.side_sw.bits.sw18 = (r & SW18_Pin)? 0:1;
 
-			//Encoder Switch detection
-			if (previous_sw == current_scan.line.n2.u16.enc_sw) { //chatter canceler
-				current_push = current_scan.line.n2.u16.enc_sw;
-				uint16_t sw_dif = current_push ^ previous_push;
-				MTX_Stat.line.n2.u16.enc_sw = current_push;
-				if (sw_dif != 0) {
+			//Switch detection
+			if (previous_mtrx == current_scan.wd){
+				current_push = current_scan.wd;
+				uint16_t dif = current_push ^ previous_push;
+				MTX_Stat.wd = current_push;
+				if (dif != 0){
 					previous_push = current_push;
-					isAnySwitchPushed = true;
+					isAnyMatrixPushed = true;
 					scene_timer = 0;
 				}
 			}
-			previous_sw = current_scan.line.n2.u16.enc_sw;
-
+			r = (SSW_GPIO_Port->IDR);	//Get side switches
+			current_scan.nb.sw17 = (r & SW17_Pin)? 0:1;
+			current_scan.nb.sw18 = (r & SW18_Pin)? 0:1;
 			// Side Switch detection
-			if (prev_sidesw == current_scan.line.n2.u16.side_sw.u16) {
-				current_sidesw.u16.side_sw.bits.sw17 = current_scan.line.n2.u16.side_sw.bits.sw17;
-				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
+//			if (prev_sidesw == current_scan.nb.) {
+//				current_sidesw.u16.side_sw.bits.sw17 = current_scan.line.n2.u16.side_sw.bits.sw17;
+//				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
+//
+//				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push.u16.side_sw.u16; // include virtual switches
+//				if(sidesw_dif != 0) {
+//					MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
+//					MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
+//					prev_sidesw_push.u16.side_sw.u16 = current_sidesw.u16.side_sw.u16;
+//					isAnySwitchPushed = true;
+//				}
+//			}
+//			prev_sidesw = current_scan.line.n2.u16.side_sw.u16;
 
-				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push.u16.side_sw.u16; // include virtual switches
-				if(sidesw_dif != 0) {
-					MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
-					MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
-					prev_sidesw_push.u16.side_sw.u16 = current_sidesw.u16.side_sw.u16;
-					isAnySwitchPushed = true;
-				}
-			}
-			prev_sidesw = current_scan.line.n2.u16.side_sw.u16;
+			previous_mtrx = current_scan.wd;
 			break;
 	}
-
 	if (scene_timer++ > SCENE_TIMEOUT) {
 		scene_timer = 0;
 #ifndef NO_SCENE_TO
 		// do scene switching to Lr_SCENE0 as scene switch is pushed
 		if (LrScene != Lr_SCENE1) {
 			isScene_Timeout = true;
-			MTX_Stat.line.n2.u16.side_sw.bits.sw18 = 1;
-			isAnySwitchPushed = true;
+			MTX_Stat.nb.sw18 = 1;
+			isAnyMatrixPushed = true;
 			LrScene = Lr_SCENE_MAX;
 #endif
 		}
@@ -363,6 +325,59 @@ void TIM6_DAC_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM7 global interrupt.
+  */
+void TIM7_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM7_IRQn 0 */
+
+	current_enc.ports.pc = (GPIOC->IDR);
+	current_enc.ports.pb = (GPIOB->IDR);
+
+	if (previous_enc == current_enc.wd) { // Encoder signals are stable
+		current_move = current_enc.wd;
+		uint16_t dif = previous_move ^ current_move;
+		if (dif != 0) { // If any encoder has moved.
+			previous_move = current_move;
+
+			// Determine axis
+			uint8_t	movedbits = ntz16(dif);
+			uint8_t	axis = movedbits / 2;
+
+			enc_move.bits.move = enc_table[enc_prev[axis]] [enc_current[axis]];
+			enc_move.bits.axis = axis;
+
+			enc_prev[axis] = enc_current[axis];
+			if (dechatter_timer >= dechatter_rate) {
+				isAnyEncoderMoved = true;
+				scene_timer = 0;
+			} else {
+				if(( dechatter_rate - dechatter_timer) > DECHATTER_THR) {
+					dechatter_rate -= DECHATTER_DEC;
+					if (dechatter_rate < DECHATTER_MIN) {
+						dechatter_rate = DECHATTER_MIN;
+					}
+				}
+			}
+			dechatter_timer = 0;
+		} else { // all encoder not moved.
+			dechatter_rate = DECHATTER_MAX;
+		}
+	} else {
+		previous_enc = current_enc.wd;
+	}
+	if (dechatter_timer < dechatter_rate) {
+		dechatter_timer++;
+	}
+
+  /* USER CODE END TIM7_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim7);
+  /* USER CODE BEGIN TIM7_IRQn 1 */
+
+  /* USER CODE END TIM7_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB global interrupt / USB wake-up interrupt through EXTI line 18.
   */
 void USB_IRQHandler(void)
@@ -381,26 +396,28 @@ void USB_IRQHandler(void)
  * @brief	Load momental encoder values as initialize encoders.
  */
 void ENC_Init() {
-	//! Initialize all enc_prev[] for current pin value
-	uint16_t v = (Mx_GPIO_Port->IDR);
-	enc_prev[Lr_ENC0] = current_enc.nb.enc0 = v;
-	enc_prev[Lr_ENC1] = current_enc.nb.enc1 = v;
-	enc_prev[Lr_ENC2] = current_enc.nb.enc2 = v;
-	enc_prev[Lr_ENC3] = current_enc.nb.enc3 = v;
-	enc_prev[Lr_ENC4] = current_enc.nb.enc4 = v;
-	enc_prev[Lr_ENC5] = current_enc.nb.enc5 = v;
-	enc_prev[Lr_ENC6] = current_enc.nb.enc6 = v;
-	enc_prev[Lr_ENC7] = current_enc.nb.enc7 = v;
-	enc_prev[Lr_ENC8] = current_enc.nb.enc8 = v;
-	enc_prev[Lr_ENC9] = current_enc.nb.enc9 = v;
-	enc_prev[Lr_ENC10] = current_enc.nb.enc10 = v;
-	enc_prev[Lr_ENC11] = current_enc.nb.enc11 = v;
-	enc_prev[Lr_ENC12] = current_enc.nb.enc12 = v;
-	enc_prev[Lr_ENC13] = current_enc.nb.enc13 = v;
-	enc_prev[Lr_ENC14] = current_enc.nb.enc14 = v;
-	enc_prev[Lr_ENC15] = current_enc.nb.enc15 = v;
 
-	previous_move = previous_enc = current_enc.u32;
+	//! Initialize all enc_prev[] for current pin value
+	current_enc.ports.pc = (GPIOC->IDR);
+	current_enc.ports.pb = (GPIOB->IDR);
+	enc_prev[Lr_ENC0] = current_enc.nb.enc0;
+	enc_prev[Lr_ENC1] = current_enc.nb.enc1;
+	enc_prev[Lr_ENC2] = current_enc.nb.enc2;
+	enc_prev[Lr_ENC3] = current_enc.nb.enc3;
+	enc_prev[Lr_ENC4] = current_enc.nb.enc4;
+	enc_prev[Lr_ENC5] = current_enc.nb.enc5;
+	enc_prev[Lr_ENC6] = current_enc.nb.enc6;
+	enc_prev[Lr_ENC7] = current_enc.nb.enc7;
+	enc_prev[Lr_ENC8] = current_enc.nb.enc8;
+	enc_prev[Lr_ENC9] = current_enc.nb.enc9;
+	enc_prev[Lr_ENC10] = current_enc.nb.enc10;
+	enc_prev[Lr_ENC11] = current_enc.nb.enc11;
+	enc_prev[Lr_ENC12] = current_enc.nb.enc12;
+	enc_prev[Lr_ENC13] = current_enc.nb.enc13;
+	enc_prev[Lr_ENC14] = current_enc.nb.enc14;
+	enc_prev[Lr_ENC15] = current_enc.nb.enc15;
+
+	previous_move = previous_enc = current_enc.wd;
 	scene_timer = 0;
 	dechatter_timer = 0;
 	dechatter_rate = DECHATTER_MAX;
@@ -409,7 +426,7 @@ void ENC_Init() {
  * @brief	Initialize Matrix related variables.
  */
 void MTRX_Init() {
-	previous_sw = 0;
+	previous_mtrx = 0;
 	previous_push = 0;
 	current_push = 0;
 }

@@ -16,7 +16,7 @@
 
 //! Type for Encoders
 typedef union enc_scan_t {
-    uint32_t u32;
+    uint32_t wd;
     struct enc_bits_t {
 		uint8_t enc0:2;	//! < Rotary encoder0
 		uint8_t enc1:2;	//! < Rotary encoder1
@@ -35,11 +35,20 @@ typedef union enc_scan_t {
 		uint8_t enc14:2;	//! < Rotary encoder14
 		uint8_t enc15:2;	//! < Rotary encoder15
     } nb;
+    struct ports_t {
+    	uint16_t pc;
+    	uint16_t pb;
+    } ports;
 } ENC_SCAN;
 
-typedef union sw_push_t {
-	uint16_t	u16;
-	struct sw_push_bits_t {
+//! Type for switch matrix
+typedef union mtrx_scan_t {
+    uint32_t wd;
+    struct ks_bits_t {
+		uint8_t n0:4;	//! < Switch Line0
+		uint8_t n1:4;	//! < Switch Line1
+		uint8_t n2:4;	//! < Switch Line2
+		uint8_t n3:4;	//! < Switch Line3
 		uint16_t	sw17:1;	//! < SW17 single push (function)
 		uint16_t	sw18:1;	//! < SW18 single push (scene)
 		uint16_t	sw17lp:1;	//! < SW17 long push (virtual)
@@ -49,29 +58,7 @@ typedef union sw_push_t {
 		uint16_t	sw17sp:1;	//! < SW17 single push (virtual)
 		uint16_t	sw18sp:1;	//! < SW18 single push (virtual)
 		uint8_t		dummy;		//! < dummy bits
-	} bits;
-} SW_PUSH;
-
-typedef union sw_scan_t {
-	uint32_t	u32;
-	struct sw_hw_t{
-		uint16_t 	enc_sw;
-		SW_PUSH		side_sw;
-	} u16;
-} SW_SCAN;
-
-//! Type for switch/encoder matrix
-typedef union mtrx_scan_t {
-    uint64_t u64;
-    struct scan_entry_t {
-		uint16_t n0;	//! < Switch Line0
-		uint16_t n1;	//! < Switch Line1
-		SW_SCAN	n2;		//! < Switch Line2 and non-matrix
-    } line;
-    struct analyze_t {
-    	ENC_SCAN n01;	//! 32bit
-		SW_SCAN	n2;		//! < Switch Line2 and non-matrix
-    } enc;
+    } nb;
 } MTX_SCAN;
 
 //! Encoder movement expression
@@ -99,6 +86,7 @@ enum {
 	L0 = 0,
 	L1,
 	L2,
+	L3
 };
 
 //! Encoder definitions
