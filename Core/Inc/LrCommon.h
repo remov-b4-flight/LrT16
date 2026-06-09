@@ -49,15 +49,15 @@ typedef union mtrx_scan_t {
 		uint8_t n1:4;	//! < Switch Line1
 		uint8_t n2:4;	//! < Switch Line2
 		uint8_t n3:4;	//! < Switch Line3
-		uint16_t	sw17:1;	//! < SW17 single push (function)
-		uint16_t	sw18:1;	//! < SW18 single push (scene)
-		uint16_t	sw17lp:1;	//! < SW17 long push (virtual)
-		uint16_t	sw18lp:1;	//! < SW18 long push (virtual)
-		uint16_t	sw17dp:1;	//! < SW17 double push
-		uint16_t	sw18dp:1;	//! < SW18 double push
-		uint16_t	sw17sp:1;	//! < SW17 single push (virtual)
-		uint16_t	sw18sp:1;	//! < SW18 single push (virtual)
-		uint8_t		dummy;		//! < dummy bits
+		uint8_t	sw17:1;	//! < SW17 single push (function)
+		uint8_t	sw18:1;	//! < SW18 single push (scene)
+		uint8_t	sw17lp:1;	//! < SW17 long push (virtual)
+		uint8_t	sw18lp:1;	//! < SW18 long push (virtual)
+		uint8_t	sw17dp:1;	//! < SW17 double push
+		uint8_t	sw18dp:1;	//! < SW18 double push
+		uint8_t	sw17sp:1;	//! < SW17 single push (virtual)
+		uint8_t	sw18sp:1;	//! < SW18 single push (virtual)
+		uint8_t	dummy;		//! < dummy bits
     } nb;
 } MTX_SCAN;
 

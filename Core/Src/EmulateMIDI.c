@@ -133,7 +133,7 @@ void EmulateMIDI() {
 				// run LP_Timer for determine long push
 				LP_Timer = LP_TIM_NORM;
 				LP_Timer_Enable = true;
-			} else if (MTX_Stat.nb.sw17 == 1) {
+			} else if (MTX_Stat.nb.sw17lp == 1) {
 				MTX_Stat.nb.sw17lp = 0;
 				note = NOTE_FUNC_LP;
 				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R1S);

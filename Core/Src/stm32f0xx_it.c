@@ -59,13 +59,13 @@
 /* USER CODE BEGIN 0 */
 
 //! Current detected bits as push
-uint16_t current_push;
+uint32_t current_push;
 //! Previous detected bits
-uint16_t previous_push;
+uint32_t previous_push;
 //! Value of scanned from key matrix.
 MTX_SCAN current_scan;
 //! Previous scanned bits
-uint16_t previous_mtrx;
+uint32_t previous_mtrx;
 //! Previous encoder state array
 uint8_t	enc_prev[ENC_COUNT];
 //! CUrrent encoder state array
@@ -256,6 +256,11 @@ void TIM2_IRQHandler(void)
 			current_scan.nb.n3 = (r);
 			HAL_GPIO_WritePin(L3_GPIO_Port, L3_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(L0_GPIO_Port, L0_Pin, GPIO_PIN_SET);
+			// scan side sw
+			r = (SSW_GPIO_Port->IDR);	//Get side switches
+			current_scan.nb.sw17 = (r & SW17_Pin)? 0:1;
+			current_scan.nb.sw18 = (r & SW18_Pin)? 0:1;
+
 			ENCSW_Line = L0;
 
 			//Switch detection
@@ -269,10 +274,10 @@ void TIM2_IRQHandler(void)
 					scene_timer = 0;
 				}
 			}
-			r = (SSW_GPIO_Port->IDR);	//Get side switches
-			current_scan.nb.sw17 = (r & SW17_Pin)? 0:1;
-			current_scan.nb.sw18 = (r & SW18_Pin)? 0:1;
-			// Side Switch detection
+//			r = (SSW_GPIO_Port->IDR);	//Get side switches
+//			current_scan.nb.sw17 = (r & SW17_Pin)? 0:1;
+//			current_scan.nb.sw18 = (r & SW18_Pin)? 0:1;
+//			// Side Switch detection
 //			if (prev_sidesw == current_scan.nb.) {
 //				current_sidesw.u16.side_sw.bits.sw17 = current_scan.line.n2.u16.side_sw.bits.sw17;
 //				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
