@@ -8,7 +8,7 @@ You can control development parameters on RAW/JPEG photos.
 detailed Video on [YouTube (LrE-6)](https://www.youtube.com/watch?v=oeDpP1sG9_Y)  
 ## Photo
 ![LrTMAX_photo.png](https://github.com/remov-b4-flight/LrTMAX.documents/blob/master/LrTMAX_photo.png)  
-LrTMAX is near to [LrE-6](https://github.com/remov-b4-flight/LrE-6)  
+LrT16 is near to [LrE-6](https://github.com/remov-b4-flight/LrE-6),[LrTMAX](https://github.com/remov-b4-flight/LrTMAX)
 Information related Build,Configure & Use are exists on wiki.  
 ***
 "Lightroom Classic" is Registerd Trademark of Adobe Corporation.
