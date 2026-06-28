@@ -215,10 +215,13 @@ rot_stopped_exits:
 		if (LP_Timer_Enable == true && --LP_Timer == 0) {
 			// shortcut for sw17 release under LPTimer running
 			uint16_t s17 = (SSW_GPIO_Port->IDR & SW17_Pin);
-			if (s17 != 0 ) { // released ?
+			if (s17 != 0 ) { // is SW17 released ?
 				MTX_Stat.nb.sw17sp = 1;
+				MTX_Stat.nb.sw17lp = 0;
+
 			} else  {
 				MTX_Stat.nb.sw17lp = 1;
+				MTX_Stat.nb.sw17sp = 0;
 			}
 			isAnyMatrixPushed = true;
 			LP_Timer_Enable = false;
