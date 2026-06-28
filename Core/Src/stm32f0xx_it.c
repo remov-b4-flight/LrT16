@@ -328,7 +328,7 @@ void TIM7_IRQHandler(void)
 			previous_move = current_move;
 
 			// Determine axis
-			uint8_t	movedbits = ntz16(dif);
+			uint8_t	movedbits = ntz32(dif);
 			uint8_t	axis = movedbits / 2;
 
 			enc_move.bits.move = enc_table[enc_prev[axis]] [enc_current[axis]];

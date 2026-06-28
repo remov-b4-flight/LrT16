@@ -136,7 +136,7 @@ void EmulateMIDI() {
 			} else if (MTX_Stat.nb.sw17lp == 1) {
 				MTX_Stat.nb.sw17lp = 0;
 				note = NOTE_FUNC_LP;
-				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R1S);
+				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R25S);
 				isSendMIDIMessage = true;
 			} else if (MTX_Stat.nb.sw17sp == 1) {
 				MTX_Stat.nb.sw17sp = 0;
@@ -184,7 +184,6 @@ void EmulateMIDI() {
 			isSendMIDIMessage = MIDI_CC_Inc(channel);
 		} else if (enc_move.bits.move == ENC_MOVE_CCW) {
 			isSendMIDIMessage = MIDI_CC_Dec(channel);
-			bitpos += 1; // for LED_SetPulse()
 		} else {
 			goto rot_stopped_exits;
 		}
