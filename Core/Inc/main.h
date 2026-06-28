@@ -179,7 +179,7 @@ void Msg_Print();
 //! LED TIM3 definitions
 #define LED_TIM_RETRY_WAIT	21		//Transfer period for I2C
 //! ON boot check bit patter for enter DFU
-#define BOOT_DFU_MASK	0x404
+#define BOOT_DFU_MASK	0x0030
 #define LED_PULSE_1S	42
 #define LED_PULSE_2S	83
 /* USER CODE END Private defines */

@@ -266,7 +266,7 @@ void TIM2_IRQHandler(void)
 			//Switch detection
 			if (previous_mtrx == current_scan.wd){
 				current_push = current_scan.wd;
-				uint16_t dif = current_push ^ previous_push;
+				uint32_t dif = current_push ^ previous_push;
 				MTX_Stat.wd = current_push;
 				if (dif != 0){
 					previous_push = current_push;
@@ -274,24 +274,6 @@ void TIM2_IRQHandler(void)
 					scene_timer = 0;
 				}
 			}
-//			r = (SSW_GPIO_Port->IDR);	//Get side switches
-//			current_scan.nb.sw17 = (r & SW17_Pin)? 0:1;
-//			current_scan.nb.sw18 = (r & SW18_Pin)? 0:1;
-//			// Side Switch detection
-//			if (prev_sidesw == current_scan.nb.) {
-//				current_sidesw.u16.side_sw.bits.sw17 = current_scan.line.n2.u16.side_sw.bits.sw17;
-//				current_sidesw.u16.side_sw.bits.sw18 = current_scan.line.n2.u16.side_sw.bits.sw18;
-//
-//				uint16_t sidesw_dif = current_sidesw.u16.side_sw.u16 ^ prev_sidesw_push.u16.side_sw.u16; // include virtual switches
-//				if(sidesw_dif != 0) {
-//					MTX_Stat.line.n2.u16.side_sw.bits.sw17 = current_sidesw.u16.side_sw.bits.sw17;
-//					MTX_Stat.line.n2.u16.side_sw.bits.sw18 = current_sidesw.u16.side_sw.bits.sw18;
-//					prev_sidesw_push.u16.side_sw.u16 = current_sidesw.u16.side_sw.u16;
-//					isAnySwitchPushed = true;
-//				}
-//			}
-//			prev_sidesw = current_scan.line.n2.u16.side_sw.u16;
-
 			previous_mtrx = current_scan.wd;
 			break;
 	}

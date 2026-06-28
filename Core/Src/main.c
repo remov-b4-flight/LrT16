@@ -128,7 +128,7 @@ void Jump2SystemMemory();
  *	@brief	Stop encoder scan
  */
 static inline void Stop_All_Encoders() {
-	HAL_TIM_Base_Stop_IT(&htim2);
+	HAL_TIM_Base_Stop_IT(&htim7);
 }
 
 /**
@@ -136,7 +136,7 @@ static inline void Stop_All_Encoders() {
  */
 static inline void Start_All_Encoders() {
 	ENC_Init();
-	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_TIM_Base_Start_IT(&htim7);
 }
 
 /**
@@ -249,7 +249,7 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim6);		//Start LED timer.
 	Start_LongTimer(MSG_TIMER_DEFAULT);
 
-	// Check SW17/PA9 and SW18/PA2 is pushed simultaneously at Power On
+	// Check SW17/PA5 and SW18/PA4 is pushed simultaneously at Power On
 	uint16_t r = (~(GPIOA->IDR)) & BOOT_DFU_MASK;
 	if (r == BOOT_DFU_MASK) { // MTD: define key combination
 		LrState = LR_USB_DFU;
@@ -271,6 +271,7 @@ int main(void)
 			// USB device configured by host
 
 			Matrix_Control(Lr_MATRIX_START);	// Initialize L0-2.
+			HAL_TIM_Base_Start_IT(&htim2);		// Start Switch matrix timer.
 			Start_All_Encoders();				// Start rotary encoder.
 
 			// Show connection banner
