@@ -12,7 +12,6 @@ extern	uint8_t	LrScene;
 extern	USBD_HandleTypeDef *pInstance;
 extern	bool isScene_Timeout;
 extern	bool Soft_Timer_Update;
-//extern	SW_SCAN prev_sidesw_push;
 //! keeps previous 'Note On' note number For sending 'Note Off' message.
 uint8_t	prev_note;
 //! If true, MIDI message previous sent is switch. If false, it's encoder
@@ -136,7 +135,7 @@ void EmulateMIDI() {
 			} else if (MTX_Stat.nb.sw17lp == 1) {
 				MTX_Stat.nb.sw17lp = 0;
 				note = NOTE_FUNC_LP;
-				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R25S);
+				SPEAKER_PlaySound(FREQ_G7, SPEAKER_TIMER_0R33S);
 				isSendMIDIMessage = true;
 			} else if (MTX_Stat.nb.sw17sp == 1) {
 				MTX_Stat.nb.sw17sp = 0;
@@ -219,7 +218,7 @@ rot_stopped_exits:
 				MTX_Stat.nb.sw17sp = 1;
 				MTX_Stat.nb.sw17lp = 0;
 
-			} else  {
+			} else  { // still pushed
 				MTX_Stat.nb.sw17lp = 1;
 				MTX_Stat.nb.sw17sp = 0;
 			}

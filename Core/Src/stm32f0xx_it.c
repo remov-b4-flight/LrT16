@@ -81,7 +81,7 @@ const uint8_t enc_table[4][4] = {
 //! Current encoder scan value load by timer interrupt
 ENC_SCAN current_enc;
 //! previous encoder scan value
-uint16_t previous_enc;
+uint32_t previous_enc;
 //! Current detected bits as movement
 uint16_t current_move;
 //! Previous detected bits
@@ -94,8 +94,6 @@ uint8_t dechatter_timer;
 uint8_t dechatter_rate;
 //
 uint16_t prev_sidesw;
-//SW_SCAN	current_sidesw;
-//SW_SCAN prev_sidesw_push;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -267,8 +265,8 @@ void TIM2_IRQHandler(void)
 			if (previous_mtrx == current_scan.wd){
 				current_push = current_scan.wd;
 				uint32_t dif = current_push ^ previous_push;
-				MTX_Stat.wd = current_push;
 				if (dif != 0){
+					MTX_Stat.wd = current_push;
 					previous_push = current_push;
 					isAnyMatrixPushed = true;
 					scene_timer = 0;
@@ -320,6 +318,23 @@ void TIM7_IRQHandler(void)
 
 	current_enc.ports.pc = (GPIOC->IDR);
 	current_enc.ports.pb = (GPIOB->IDR);
+
+	enc_current[Lr_ENC0] = current_enc.nb.enc0;
+	enc_current[Lr_ENC1] = current_enc.nb.enc1;
+	enc_current[Lr_ENC2] = current_enc.nb.enc2;
+	enc_current[Lr_ENC3] = current_enc.nb.enc3;
+	enc_current[Lr_ENC4] = current_enc.nb.enc4;
+	enc_current[Lr_ENC5] = current_enc.nb.enc5;
+	enc_current[Lr_ENC6] = current_enc.nb.enc6;
+	enc_current[Lr_ENC7] = current_enc.nb.enc7;
+	enc_current[Lr_ENC8] = current_enc.nb.enc8;
+	enc_current[Lr_ENC9] = current_enc.nb.enc9;
+	enc_current[Lr_ENC10] = current_enc.nb.enc10;
+	enc_current[Lr_ENC11] = current_enc.nb.enc11;
+	enc_current[Lr_ENC12] = current_enc.nb.enc12;
+	enc_current[Lr_ENC13] = current_enc.nb.enc13;
+	enc_current[Lr_ENC14] = current_enc.nb.enc14;
+	enc_current[Lr_ENC15] = current_enc.nb.enc15;
 
 	if (previous_enc == current_enc.wd) { // Encoder signals are stable
 		current_move = current_enc.wd;
