@@ -83,17 +83,16 @@ ENC_SCAN current_enc;
 //! previous encoder scan value
 uint32_t previous_enc;
 //! Current detected bits as movement
-uint16_t current_move;
+uint32_t current_move;
 //! Previous detected bits
-uint16_t previous_move;
+uint32_t previous_move;
 //! Scene counter
 uint32_t scene_timer;
 //! De-chatter timer counter
 uint8_t dechatter_timer;
 //! De-chatter timer counter
 uint8_t dechatter_rate;
-//
-uint16_t prev_sidesw;
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -338,7 +337,7 @@ void TIM7_IRQHandler(void)
 
 	if (previous_enc == current_enc.wd) { // Encoder signals are stable
 		current_move = current_enc.wd;
-		uint16_t dif = previous_move ^ current_move;
+		uint32_t dif = previous_move ^ current_move;
 		if (dif != 0) { // If any encoder has moved.
 			previous_move = current_move;
 
